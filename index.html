@@ -266,6 +266,38 @@
   .settings-volume input{flex:1;accent-color:var(--amber);}
   .settings-volume span{font-family:'IBM Plex Mono',monospace;font-size:12px;color:var(--muted);width:36px;text-align:right;}
 
+  /* ---------- updates ---------- */
+  .update-toggle{display:flex;gap:6px;}
+  .update-btn{
+    flex:1;background:none;border:1px solid var(--line);color:var(--muted);
+    padding:9px 0 8px;border-radius:8px;font-size:12px;font-weight:500;
+    display:flex;align-items:center;justify-content:center;gap:6px;
+    transition:color .15s ease,border-color .15s ease,background .15s ease;
+  }
+  .update-btn:hover{color:var(--paper);border-color:rgba(237,234,227,0.25);}
+  .update-btn__icon{font-size:14px;}
+  #autoUpdateBtn.is-on{color:var(--ink);background:var(--green);border-color:var(--green);}
+  #autoUpdateBtn.is-on:hover{color:var(--ink);}
+  .update-hint{
+    font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--muted);
+    line-height:1.5;margin:8px 0 0;
+  }
+  .admin-access-btn{
+    width:100%;background:none;border:1px solid var(--line);color:var(--muted);
+    padding:9px 12px;border-radius:8px;font-size:12.5px;font-weight:500;
+    display:flex;align-items:center;justify-content:center;gap:7px;
+    transition:color .15s ease,border-color .15s ease,background .15s ease;
+  }
+  .admin-access-btn:hover{color:var(--paper);border-color:rgba(237,234,227,0.25);}
+  .admin-access-btn.is-unlocked{color:var(--green);border-color:var(--green);}
+  .admin-access-btn.is-unlocked:hover{color:var(--green);}
+  .account-toggle{
+    width:100%;background:none;border:none;color:var(--amber);
+    padding:9px 0 2px;font-size:12px;font-family:'IBM Plex Mono',monospace;
+    text-decoration:underline;text-align:center;
+  }
+  .account-toggle:hover{opacity:.85;}
+
   /* ---------- admin ---------- */
   #adminBtn.is-unlocked{color:var(--green);border-color:var(--green);}
   .admin-panel__email{font-family:'IBM Plex Mono',monospace;font-size:12.5px;color:var(--amber);word-break:break-all;}
@@ -340,14 +372,10 @@
       <div class="search">
         <input id="searchInput" type="text" placeholder="Search a station, city, or genre" autocomplete="off" />
       </div>
-      <button class="settings-btn" id="adminBtn" type="button" aria-haspopup="true" aria-expanded="false" aria-label="Admin" title="Admin">
-        <svg id="adminIconLocked" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
-          <rect x="4" y="10.5" width="16" height="10" rx="2"/>
-          <path d="M7.5 10.5V7a4.5 4.5 0 0 1 9 0v3.5"/>
-        </svg>
-        <svg id="adminIconUnlocked" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" style="display:none;">
-          <rect x="4" y="10.5" width="16" height="10" rx="2"/>
-          <path d="M7.5 10.5V7a4.5 4.5 0 0 1 8.6-1.8"/>
+      <button class="settings-btn" id="updateBtn" type="button" aria-label="Update stations" title="Update stations">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M21 12a9 9 0 1 1-2.64-6.36"/>
+          <path d="M21 3v6h-6"/>
         </svg>
       </button>
       <button class="settings-btn" id="settingsBtn" type="button" aria-haspopup="true" aria-expanded="false" aria-label="Settings" title="Settings">
@@ -415,6 +443,61 @@
       <span id="settingsVolumeVal">80%</span>
     </div>
   </div>
+  <div class="settings-section">
+    <span class="settings-section__label">Updates</span>
+    <div class="update-toggle">
+      <button type="button" id="autoUpdateBtn" class="update-btn">
+        <span class="update-btn__icon" id="autoUpdateIcon">○</span>Automatic
+      </button>
+      <button type="button" id="manualUpdateBtn" class="update-btn">
+        <span class="update-btn__icon">⟳</span>Manual
+      </button>
+    </div>
+    <p class="update-hint" id="updateHint">Manual refreshes the station list on demand. Automatic keeps it fresh every 5 minutes.</p>
+  </div>
+  <div class="settings-section">
+    <span class="settings-section__label">My account</span>
+    <div class="account-box" id="accountBox" style="display:none;">
+      <div class="admin-panel__email" id="accountEmail"></div>
+      <button class="admin-logout-btn" id="accountSignOutBtn" type="button" style="margin-top:10px;">Sign out</button>
+    </div>
+    <div class="update-toggle" id="accountButtons">
+      <button type="button" id="createAccountBtn" class="update-btn">
+        <span class="update-btn__icon">＋</span>Create
+      </button>
+      <button type="button" id="signInAccountBtn" class="update-btn">
+        <span class="update-btn__icon">→</span>Sign in
+      </button>
+    </div>
+    <p class="update-hint">Create an account to save your favorites and settings to a file you can restore here or on another device.</p>
+  </div>
+  <div class="settings-section">
+    <span class="settings-section__label">Saved data</span>
+    <div class="update-toggle">
+      <button type="button" id="saveToFileBtn" class="update-btn">
+        <span class="update-btn__icon">⤓</span>Save
+      </button>
+      <button type="button" id="loadFromFileBtn" class="update-btn">
+        <span class="update-btn__icon">⤒</span>Load
+      </button>
+    </div>
+    <p class="update-hint">Backs up your account, favorites, renames and preferences to a file. The file includes your sign-in, so keep it private.</p>
+    <input type="file" id="loadFileInput" accept="application/json,.json" style="display:none;" />
+  </div>
+  <div class="settings-section">
+    <span class="settings-section__label">Admin access</span>
+    <button type="button" id="adminBtn" class="admin-access-btn">
+      <svg id="adminIconLocked" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+        <rect x="4" y="10.5" width="16" height="10" rx="2"/>
+        <path d="M7.5 10.5V7a4.5 4.5 0 0 1 9 0v3.5"/>
+      </svg>
+      <svg id="adminIconUnlocked" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" style="display:none;">
+        <rect x="4" y="10.5" width="16" height="10" rx="2"/>
+        <path d="M7.5 10.5V7a4.5 4.5 0 0 1 8.6-1.8"/>
+      </svg>
+      <span id="adminBtnLabel">Sign in</span>
+    </button>
+  </div>
 </div>
 
 <div class="settings-panel" id="adminPanel" role="dialog" aria-label="Admin">
@@ -451,6 +534,29 @@
       </label>
       <div class="admin-modal__error" id="adminError"></div>
       <button class="admin-modal__submit" id="adminSubmitBtn" type="submit">Verify &amp; sign in</button>
+    </form>
+  </div>
+</div>
+
+<div class="admin-overlay" id="accountOverlay" role="dialog" aria-modal="true" aria-label="Account">
+  <div class="admin-modal">
+    <div class="settings-panel__head">
+      <h3 id="accountModalTitle">Create account</h3>
+      <button class="settings-panel__close" id="accountModalClose" type="button" aria-label="Close">✕</button>
+    </div>
+    <p class="admin-panel__hint" id="accountModalHint">Make an account to save your favorites and settings to a file you can restore anywhere. This is a local profile on this device — not a cloud account.</p>
+    <form id="accountForm" autocomplete="on">
+      <label class="admin-field">
+        <span>Email</span>
+        <input type="email" id="accountEmailInput" name="username" autocomplete="username" required />
+      </label>
+      <label class="admin-field">
+        <span>Password</span>
+        <input type="password" id="accountPasswordInput" name="password" required />
+      </label>
+      <div class="admin-modal__error" id="accountError"></div>
+      <button class="admin-modal__submit" id="accountSubmitBtn" type="submit">Create account</button>
+      <button class="account-toggle" id="accountModeToggle" type="button">Already have an account? Sign in</button>
     </form>
   </div>
 </div>
@@ -513,6 +619,7 @@
     settingsVolume: document.getElementById("settingsVolume"),
     settingsVolumeVal: document.getElementById("settingsVolumeVal"),
     adminBtn: document.getElementById("adminBtn"),
+    adminBtnLabel: document.getElementById("adminBtnLabel"),
     adminIconLocked: document.getElementById("adminIconLocked"),
     adminIconUnlocked: document.getElementById("adminIconUnlocked"),
     adminPanel: document.getElementById("adminPanel"),
@@ -525,7 +632,31 @@
     adminEmailInput: document.getElementById("adminEmailInput"),
     adminPasswordInput: document.getElementById("adminPasswordInput"),
     adminError: document.getElementById("adminError"),
-    adminSubmitBtn: document.getElementById("adminSubmitBtn")
+    adminSubmitBtn: document.getElementById("adminSubmitBtn"),
+    updateBtn: document.getElementById("updateBtn"),
+    autoUpdateBtn: document.getElementById("autoUpdateBtn"),
+    manualUpdateBtn: document.getElementById("manualUpdateBtn"),
+    autoUpdateIcon: document.getElementById("autoUpdateIcon"),
+    updateHint: document.getElementById("updateHint"),
+    saveToFileBtn: document.getElementById("saveToFileBtn"),
+    loadFromFileBtn: document.getElementById("loadFromFileBtn"),
+    loadFileInput: document.getElementById("loadFileInput"),
+    accountBox: document.getElementById("accountBox"),
+    accountEmail: document.getElementById("accountEmail"),
+    accountButtons: document.getElementById("accountButtons"),
+    createAccountBtn: document.getElementById("createAccountBtn"),
+    signInAccountBtn: document.getElementById("signInAccountBtn"),
+    accountSignOutBtn: document.getElementById("accountSignOutBtn"),
+    accountOverlay: document.getElementById("accountOverlay"),
+    accountModalTitle: document.getElementById("accountModalTitle"),
+    accountModalHint: document.getElementById("accountModalHint"),
+    accountModalClose: document.getElementById("accountModalClose"),
+    accountForm: document.getElementById("accountForm"),
+    accountEmailInput: document.getElementById("accountEmailInput"),
+    accountPasswordInput: document.getElementById("accountPasswordInput"),
+    accountError: document.getElementById("accountError"),
+    accountSubmitBtn: document.getElementById("accountSubmitBtn"),
+    accountModeToggle: document.getElementById("accountModeToggle")
   };
 
   var PAGE_SIZE = 40;
@@ -552,7 +683,10 @@
     featuredChecked: false,
     featuredStation: null,
     isAdmin: false,
-    nameOverrides: {}
+    nameOverrides: {},
+    userAccount: null,
+    userSignedIn: false,
+    accountMode: "create"
   };
 
   /* Bumps the active request token. Any in-flight response whose captured
@@ -618,6 +752,99 @@
   var ADMIN_STORAGE_KEY = "wavelength.isAdmin";
   var NAME_OVERRIDES_KEY = "wavelength.nameOverrides";
 
+  /* ---------------- normal user account ----------------
+     A local profile stored on this device. The account is what the
+     Save/Load file backs up and restores. It's a soft gate only — the
+     password lives in localStorage and in the backup file, so anyone with
+     access to either can use it. Not real cloud security. */
+  var ACCOUNT_STORAGE_KEY = "wavelength.account";
+  var ACCOUNT_SIGNEDIN_KEY = "wavelength.accountSignedIn";
+
+  function loadAccountState(){
+    try {
+      var raw = window.localStorage.getItem(ACCOUNT_STORAGE_KEY);
+      state.userAccount = raw ? (JSON.parse(raw) || null) : null;
+    } catch(e){ state.userAccount = null; }
+    try { state.userSignedIn = window.localStorage.getItem(ACCOUNT_SIGNEDIN_KEY) === "1"; }
+    catch(e){ state.userSignedIn = false; }
+  }
+  function persistAccount(acc){
+    state.userAccount = acc || null;
+    try { window.localStorage.setItem(ACCOUNT_STORAGE_KEY, acc ? JSON.stringify(acc) : ""); } catch(e){}
+  }
+  function persistSignedIn(v){
+    state.userSignedIn = !!v;
+    try { window.localStorage.setItem(ACCOUNT_SIGNEDIN_KEY, v ? "1" : "0"); } catch(e){}
+  }
+
+  function refreshAccountUI(){
+    var signedIn = state.userSignedIn && state.userAccount;
+    el.accountBox.style.display = signedIn ? "" : "none";
+    el.accountButtons.style.display = signedIn ? "none" : "";
+    el.accountEmail.textContent = signedIn ? state.userAccount.email : "";
+  }
+
+  function openAccountOverlay(mode){
+    state.accountMode = mode === "signin" ? "signin" : "create";
+    closeSettings();
+    el.accountError.textContent = "";
+    el.accountPasswordInput.value = "";
+    var isCreate = state.accountMode === "create";
+    el.accountModalTitle.textContent = isCreate ? "Create account" : "Sign in";
+    el.accountModalHint.textContent = isCreate
+      ? "Make an account to save your favorites and settings to a file you can restore anywhere. This is a local profile on this device — not a cloud account."
+      : "Welcome back. Sign in with your account email and password.";
+    el.accountSubmitBtn.textContent = isCreate ? "Create account" : "Sign in";
+    el.accountModeToggle.textContent = isCreate
+      ? "Already have an account? Sign in"
+      : "Need an account? Create one";
+    el.accountEmailInput.focus();
+    el.accountOverlay.classList.add("is-open");
+  }
+  function closeAccountOverlay(){
+    el.accountOverlay.classList.remove("is-open");
+  }
+  function toggleAccountMode(){
+    openAccountOverlay(state.accountMode === "create" ? "signin" : "create");
+  }
+
+  function submitAccount(){
+    var email = el.accountEmailInput.value.trim().toLowerCase();
+    var pass = el.accountPasswordInput.value;
+    el.accountError.textContent = "";
+    if (!email || email.indexOf("@") === -1){ el.accountError.textContent = "Enter a valid email address."; return; }
+    if (pass.length < 4){ el.accountError.textContent = "Password must be at least 4 characters."; return; }
+
+    if (state.accountMode === "create"){
+      if (state.userAccount && state.userAccount.email === email){
+        el.accountError.textContent = "An account with that email already exists on this device.";
+        return;
+      }
+      var acc = { email: email, password: pass, createdAt: new Date().toISOString() };
+      persistAccount(acc);
+      persistSignedIn(true);
+      refreshAccountUI();
+      closeAccountOverlay();
+      showToast("Account created. You're signed in.");
+    } else {
+      var existing = state.userAccount;
+      if (!existing || existing.email !== email || existing.password !== pass){
+        el.accountError.textContent = "Email or password didn't match.";
+        return;
+      }
+      persistSignedIn(true);
+      refreshAccountUI();
+      closeAccountOverlay();
+      showToast("Signed in as " + email + ".");
+    }
+  }
+
+  function signOutAccount(){
+    persistSignedIn(false);
+    refreshAccountUI();
+    showToast("Signed out of your account.");
+  }
+
   function loadAdminState(){
     try { state.isAdmin = window.localStorage.getItem(ADMIN_STORAGE_KEY) === "1"; }
     catch(e){ state.isAdmin = false; }
@@ -656,10 +883,12 @@
     el.adminBtn.classList.toggle("is-unlocked", state.isAdmin);
     el.adminIconLocked.style.display = state.isAdmin ? "none" : "";
     el.adminIconUnlocked.style.display = state.isAdmin ? "" : "none";
+    el.adminBtnLabel.textContent = state.isAdmin ? "Admin panel" : "Sign in";
     el.adminSignedInEmail.textContent = state.isAdmin ? ADMIN_EMAIL : "";
   }
 
   function openAdminOverlay(){
+    closeSettings();
     el.adminError.textContent = "";
     el.adminPasswordInput.value = "";
     el.adminOverlay.classList.add("is-open");
@@ -669,6 +898,7 @@
     el.adminOverlay.classList.remove("is-open");
   }
   function openAdminPanel(){
+    closeSettings();
     el.adminPanel.classList.add("is-open");
   }
   function closeAdminPanel(){
@@ -838,6 +1068,170 @@
     el.volume.value = v;
     el.settingsVolume.value = v;
     el.settingsVolumeVal.textContent = v + "%";
+    persistVolume(v);
+  }
+
+  /* ---------------- station updates / refresh ---------------- */
+  var AUTO_UPDATE_KEY = "wavelength.autoUpdate";
+  var AUTO_UPDATE_INTERVAL_MS = 5 * 60 * 1000;
+  var autoUpdateTimer = null;
+
+  /* Re-fetches the list for whichever view is on screen. Touches only the
+     station cards — never the audio element or the currently playing
+     station, so a refresh mid-playback won't interrupt the signal. */
+  function refreshCurrentView(silent){
+    var view = state.view;
+    var param = state.viewParam;
+    if (view === "popular"){
+      loadPopular(true);
+    } else if (view === "country" && param){
+      loadCountry(param, true);
+    } else if (view === "countryFilter" && param){
+      runCountryFilter(param, false);
+    } else if (view === "search" && param){
+      runSearch(param, false);
+    } else if (view === "favorites"){
+      renderGrid(state.favorites);
+    } else {
+      loadPopular(true);
+    }
+    if (!silent) showToast("Station list updated.");
+  }
+
+  function applyAutoUpdate(on){
+    state.autoUpdate = !!on;
+    el.autoUpdateBtn.classList.toggle("is-on", state.autoUpdate);
+    el.autoUpdateIcon.textContent = state.autoUpdate ? "●" : "○";
+    el.updateHint.textContent = state.autoUpdate
+      ? "Automatic updates on — the list refreshes every 5 minutes."
+      : "Manual refreshes the station list on demand. Automatic keeps it fresh every 5 minutes.";
+    if (autoUpdateTimer){ clearInterval(autoUpdateTimer); autoUpdateTimer = null; }
+    if (state.autoUpdate){
+      autoUpdateTimer = setInterval(function(){ refreshCurrentView(true); }, AUTO_UPDATE_INTERVAL_MS);
+    }
+    try { window.localStorage.setItem(AUTO_UPDATE_KEY, state.autoUpdate ? "1" : "0"); } catch(e){}
+  }
+
+  function loadAutoUpdateState(){
+    var saved = false;
+    try { saved = window.localStorage.getItem(AUTO_UPDATE_KEY) === "1"; } catch(e){}
+    state.autoUpdate = false;
+    applyAutoUpdate(saved);
+  }
+
+  /* ---------------- backup / restore (save system) ----------------
+     Exports the user's normal account, favorites, renames and preferences
+     to a JSON file they can keep or move to another device, and restores
+     it back here. Admin data is never written to the file — admin sign-in
+     is a separate, device-local gate for station renaming. */
+  var BACKUP_VERSION = 1;
+  var VOLUME_STORAGE_KEY = "wavelength.volume";
+
+  function buildBackup(){
+    var data = {
+      version: BACKUP_VERSION,
+      savedAt: new Date().toISOString(),
+      account: state.userAccount ? { email: state.userAccount.email, password: state.userAccount.password, createdAt: state.userAccount.createdAt } : null,
+      signedIn: !!state.userSignedIn,
+      favorites: state.favorites || [],
+      nameOverrides: state.nameOverrides || {},
+      preferences: {
+        theme: "dark",
+        clockOffset: "local",
+        autoUpdate: !!state.autoUpdate,
+        volume: Math.round((el.audio.volume || 0) * 100)
+      }
+    };
+    try { data.preferences.theme = window.localStorage.getItem(THEME_STORAGE_KEY) || "dark"; } catch(e){}
+    try { data.preferences.clockOffset = window.localStorage.getItem(CLOCK_STORAGE_KEY) || "local"; } catch(e){}
+    return data;
+  }
+
+  function downloadBackup(){
+    var data = buildBackup();
+    var blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement("a");
+    var stamp = new Date().toISOString().slice(0,10);
+    a.href = url;
+    a.download = "wavelength-backup-" + stamp + ".json";
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    setTimeout(function(){ URL.revokeObjectURL(url); }, 1000);
+    showToast("Backup saved to your downloads.");
+  }
+
+  function applyBackup(data){
+    if (!data || typeof data !== "object") throw new Error("Not a valid backup file.");
+    if (data.version !== BACKUP_VERSION) throw new Error("This backup version isn't supported.");
+
+    var prefs = data.preferences || {};
+    var theme = prefs.theme === "light" ? "light" : "dark";
+    var clockOffset = typeof prefs.clockOffset === "string" ? prefs.clockOffset : "local";
+    var autoUpdate = !!prefs.autoUpdate;
+    var volume = Math.max(0, Math.min(100, Math.round(Number(prefs.volume)) || 0));
+
+    var favorites = Array.isArray(data.favorites) ? data.favorites.filter(function(s){
+      return s && s.stationuuid;
+    }) : [];
+    var overrides = (data.nameOverrides && typeof data.nameOverrides === "object") ? data.nameOverrides : {};
+    var acc = (data.account && typeof data.account === "object" && data.account.email && data.account.password)
+      ? { email: String(data.account.email), password: String(data.account.password), createdAt: data.account.createdAt || null }
+      : null;
+    var signedIn = !!data.signedIn && !!acc;
+
+    /* Write to localStorage so it persists after restore. Admin state is
+       deliberately not touched here. */
+    try {
+      window.localStorage.setItem(STORAGE_KEY, JSON.stringify(favorites));
+      window.localStorage.setItem(NAME_OVERRIDES_KEY, JSON.stringify(overrides));
+      window.localStorage.setItem(ACCOUNT_STORAGE_KEY, acc ? JSON.stringify(acc) : "");
+      window.localStorage.setItem(ACCOUNT_SIGNEDIN_KEY, signedIn ? "1" : "0");
+      window.localStorage.setItem(THEME_STORAGE_KEY, theme);
+      window.localStorage.setItem(CLOCK_STORAGE_KEY, clockOffset);
+      window.localStorage.setItem(AUTO_UPDATE_KEY, autoUpdate ? "1" : "0");
+      window.localStorage.setItem(VOLUME_STORAGE_KEY, String(volume));
+    } catch(e){ /* storage unavailable — in-memory restore still applies below */ }
+
+    /* Apply to in-memory state and UI. Playback is left untouched. */
+    state.favorites = favorites;
+    state.nameOverrides = overrides;
+    state.userAccount = acc;
+    state.userSignedIn = signedIn;
+    applyTheme(theme);
+    if (el.clockOffset) el.clockOffset.value = clockOffset;
+    applyAutoUpdate(autoUpdate);
+    setVolume(volume);
+    refreshAccountUI();
+    if (el.search) el.search.value = "";
+    if (state.activeTab === "Favorites") renderGrid(state.favorites);
+    else refreshCurrentView(true);
+    tickClock();
+    showToast("Backup restored." + (signedIn ? " You're signed in as " + acc.email + "." : ""));
+  }
+
+  function restoreFromFile(file){
+    if (!file) return;
+    var reader = new FileReader();
+    reader.onload = function(){
+      try {
+        var data = JSON.parse(reader.result);
+        applyBackup(data);
+      } catch(err){
+        showToast(err && err.message ? err.message : "Couldn't read that backup file.");
+      }
+    };
+    reader.onerror = function(){ showToast("Couldn't read that backup file."); };
+    reader.readAsText(file);
+  }
+
+  /* Persist volume so a restore has something to read back. */
+  function persistVolume(v){
+    try { window.localStorage.setItem(VOLUME_STORAGE_KEY, String(v)); } catch(e){}
+  }
+  function loadVolumeState(){
+    try { var v = Number(window.localStorage.getItem(VOLUME_STORAGE_KEY)); if (!isNaN(v) && v >= 0 && v <= 100) setVolume(v); } catch(e){}
   }
 
   /* ---------------- rendering: dial ---------------- */
@@ -1539,6 +1933,52 @@
     else openSettings();
   });
   el.settingsClose.addEventListener("click", closeSettings);
+  el.updateBtn.addEventListener("click", function(e){
+    e.stopPropagation();
+    refreshCurrentView(false);
+  });
+  el.manualUpdateBtn.addEventListener("click", function(){
+    refreshCurrentView(false);
+  });
+  el.autoUpdateBtn.addEventListener("click", function(){
+    applyAutoUpdate(!state.autoUpdate);
+    showToast(state.autoUpdate ? "Automatic updates turned on." : "Automatic updates turned off.");
+  });
+  el.saveToFileBtn.addEventListener("click", function(e){
+    e.stopPropagation();
+    downloadBackup();
+  });
+  el.loadFromFileBtn.addEventListener("click", function(e){
+    e.stopPropagation();
+    el.loadFileInput.value = "";
+    el.loadFileInput.click();
+  });
+  el.loadFileInput.addEventListener("change", function(){
+    if (el.loadFileInput.files && el.loadFileInput.files[0]){
+      restoreFromFile(el.loadFileInput.files[0]);
+    }
+  });
+  el.createAccountBtn.addEventListener("click", function(e){
+    e.stopPropagation();
+    openAccountOverlay("create");
+  });
+  el.signInAccountBtn.addEventListener("click", function(e){
+    e.stopPropagation();
+    openAccountOverlay("signin");
+  });
+  el.accountSignOutBtn.addEventListener("click", function(e){
+    e.stopPropagation();
+    signOutAccount();
+  });
+  el.accountModalClose.addEventListener("click", closeAccountOverlay);
+  el.accountModeToggle.addEventListener("click", toggleAccountMode);
+  el.accountOverlay.addEventListener("click", function(e){
+    if (e.target === el.accountOverlay) closeAccountOverlay();
+  });
+  el.accountForm.addEventListener("submit", function(e){
+    e.preventDefault();
+    submitAccount();
+  });
   el.adminBtn.addEventListener("click", function(e){
     e.stopPropagation();
     if (state.isAdmin){
@@ -1564,7 +2004,7 @@
     closeAdminPanel();
   });
   document.addEventListener("keydown", function(e){
-    if (e.key === "Escape"){ closeAdminOverlay(); closeAdminPanel(); }
+    if (e.key === "Escape"){ closeAdminOverlay(); closeAdminPanel(); closeAccountOverlay(); }
   });
   el.themeDarkBtn.addEventListener("click", function(){ applyTheme("dark"); });
   el.themeLightBtn.addEventListener("click", function(){ applyTheme("light"); });
@@ -1614,6 +2054,10 @@
   /* ---------------- init ---------------- */
   loadAdminState();
   loadNameOverrides();
+  loadAutoUpdateState();
+  loadVolumeState();
+  loadAccountState();
+  refreshAccountUI();
   refreshAdminUI();
   loadTheme();
   populateClockOffsets();
@@ -1627,3 +2071,4 @@
 </script>
 </body>
 </html>
+
