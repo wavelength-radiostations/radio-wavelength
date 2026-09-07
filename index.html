@@ -119,6 +119,20 @@
   .stations__count{font-family:'IBM Plex Mono',monospace;font-size:12.5px;color:var(--muted);}
   .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:12px;}
 
+  .featured{margin-bottom:18px;}
+  .featured.is-hidden{display:none;}
+  .featured__label{
+    font-family:'IBM Plex Mono',monospace;font-size:10.5px;color:var(--amber);
+    text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px;
+    display:flex;align-items:center;gap:6px;
+  }
+  .featured__label::before{content:"";width:6px;height:6px;border-radius:50%;background:var(--amber);flex:none;}
+  .featured__note{
+    font-family:'IBM Plex Mono',monospace;font-size:12.5px;color:var(--muted);line-height:1.6;
+    border:1px dashed var(--line);border-radius:var(--radius);padding:12px 14px;
+  }
+  .featured__note a{color:var(--amber);text-decoration:underline;}
+
   .load-more-wrap{display:flex;justify-content:center;margin-top:22px;}
   .load-more-wrap.is-hidden{display:none;}
   .load-more-btn{
@@ -300,6 +314,7 @@
       <h2 id="stationsTitle">Popular around the world</h2>
       <span class="stations__count" id="stationsCount"></span>
     </div>
+    <div class="featured is-hidden" id="featuredWrap"></div>
     <div class="grid" id="grid"></div>
     <div class="load-more-wrap is-hidden" id="loadMoreWrap">
       <button class="load-more-btn" id="loadMoreBtn" type="button">Load more stations</button>
@@ -348,6 +363,7 @@
 <div class="toast" id="toast"></div>
 <audio id="audio" preload="none"></audio>
 
+<script src="https://cdnjs.cloudflare.com/ajax/libs/hls.js/1.5.17/hls.min.js"></script>
 <script>
 (function(){
   "use strict";
@@ -376,6 +392,7 @@
     countryRow: document.getElementById("countryRow"),
     genreRow: document.getElementById("genreRow"),
     grid: document.getElementById("grid"),
+    featuredWrap: document.getElementById("featuredWrap"),
     title: document.getElementById("stationsTitle"),
     count: document.getElementById("stationsCount"),
     search: document.getElementById("searchInput"),
@@ -421,7 +438,10 @@
     offset: 0,
     searchLimit: PAGE_SIZE,
     renderedUUIDs: new Set(),
-    reqId: 0
+    reqId: 0,
+    hlsInstance: null,
+    featuredChecked: false,
+    featuredStation: null
   };
 
   /* Bumps the active request token. Any in-flight response whose captured
@@ -851,6 +871,59 @@
     el.grid.appendChild(wrap);
   }
 
+  /* ---------------- featured replacement ----------------
+     NPO Soul & Jazz went off air Sept 1 2026; Radio 10 launched
+     "Radio 10 Soul & Jazz" as the on-air replacement. It's pinned
+     above the Popular grid, looked up live rather than hardcoded
+     so it stays correct if the directory listing changes. */
+  function hideFeatured(){
+    el.featuredWrap.classList.add("is-hidden");
+  }
+
+  function renderFeatured(){
+    el.featuredWrap.innerHTML = "";
+    var label = document.createElement("div");
+    label.className = "featured__label";
+    label.textContent = "Now replacing NPO Soul & Jazz";
+    el.featuredWrap.appendChild(label);
+
+    if (state.featuredStation){
+      el.featuredWrap.appendChild(makeCard(state.featuredStation));
+    } else {
+      var note = document.createElement("div");
+      note.className = "featured__note";
+      note.innerHTML = "NPO Soul & Jazz stopped broadcasting September 1, 2026. Radio 10 launched \u201cRadio 10 Soul & Jazz\u201d as the replacement, but it isn't in this station directory yet \u2014 try searching \u201cRadio 10\u201d above, or visit <a href=\"https://www.radio10.nl/zenders/radio-10-soul-jazz\" target=\"_blank\" rel=\"noopener\">radio10.nl</a> directly.";
+      el.featuredWrap.appendChild(note);
+    }
+    el.featuredWrap.classList.remove("is-hidden");
+  }
+
+  function ensureFeatured(){
+    if (state.featuredChecked){
+      renderFeatured();
+      return;
+    }
+    state.featuredChecked = true;
+    apiGet("/json/stations/search?name=" + encodeURIComponent("Radio 10 Soul") + "&limit=10&hidebroken=true&order=votes&reverse=true")
+      .then(function(list){
+        var match = (list || []).filter(function(s){
+          var n = (s.name || "").toLowerCase();
+          return n.indexOf("soul") !== -1 && n.indexOf("jazz") !== -1;
+        })[0] || (list && list[0]) || null;
+        state.featuredStation = match;
+        renderFeatured();
+      })
+      .catch(function(){
+        state.featuredStation = null;
+        renderFeatured();
+      });
+  }
+
+  function isNpoSoulJazzQuery(query){
+    var q = (query || "").toLowerCase();
+    return q.indexOf("soul") !== -1 && q.indexOf("jazz") !== -1;
+  }
+
   /* ---------------- data loading ---------------- */
   function loadPopular(reset){
     state.view = "popular";
@@ -862,6 +935,7 @@
       resetGrid();
       state.offset = 0;
       showSkeletons(8);
+      hideFeatured();
     } else {
       myId = state.reqId;
       el.loadMoreBtn.disabled = true;
@@ -885,6 +959,7 @@
 
   function loadFavoritesTab(){
     newRequest(); /* invalidate any in-flight request from the previous view */
+    hideFeatured();
     state.view = "favorites";
     state.viewParam = null;
     el.title.textContent = "Your favorites";
@@ -901,6 +976,7 @@
   }
 
   function loadContinent(name){
+    hideFeatured();
     el.title.textContent = name + " stations";
     el.countryRow.innerHTML = "";
     el.genreRow.innerHTML = "";
@@ -984,6 +1060,10 @@
   }
 
   function runSearch(query, isLoadMore){
+    if (!isLoadMore){
+      if (isNpoSoulJazzQuery(query)) ensureFeatured();
+      else hideFeatured();
+    }
     state.view = "search";
     state.viewParam = query;
     el.title.textContent = 'Results for "' + query + '"';
@@ -1020,6 +1100,7 @@
   }
 
   function runCountryFilter(name, isLoadMore){
+    if (!isLoadMore) hideFeatured();
     state.view = "countryFilter";
     state.viewParam = name;
     el.title.textContent = name + " stations";
@@ -1111,6 +1192,45 @@
     el.nowMeta.textContent = statusText || [station.country, station.bitrate ? station.bitrate + " kbps" : ""].filter(Boolean).join(" · ");
   }
 
+  /* ---------------- HLS (.m3u8) playback ----------------
+     Many public broadcasters (NPO among them) only serve HLS streams.
+     A plain <audio> element can play those natively in Safari, but not
+     in Chrome/Firefox/Edge, where they just fail silently. hls.js fills
+     that gap by feeding the segments into the audio element via MSE. */
+  function isHlsStream(url, station){
+    if (station && (station.hls === 1 || station.hls === "1")) return true;
+    return !!(url && /\.m3u8($|\?)/i.test(url));
+  }
+
+  function destroyHls(){
+    if (state.hlsInstance){
+      try { state.hlsInstance.destroy(); } catch(e){ /* already gone */ }
+      state.hlsInstance = null;
+    }
+  }
+
+  function attachStream(streamUrl, station){
+    destroyHls();
+    var nativeHls = el.audio.canPlayType("application/vnd.apple.mpegurl") ||
+                     el.audio.canPlayType("application/x-mpegURL");
+    if (isHlsStream(streamUrl, station) && !nativeHls && window.Hls && window.Hls.isSupported()){
+      return new Promise(function(resolve, reject){
+        var hls = new window.Hls();
+        state.hlsInstance = hls;
+        hls.on(window.Hls.Events.ERROR, function(_evt, data){
+          if (data && data.fatal) reject(new Error("hls fatal error: " + data.type));
+        });
+        hls.on(window.Hls.Events.MANIFEST_PARSED, function(){
+          el.audio.play().then(resolve).catch(reject);
+        });
+        hls.loadSource(streamUrl);
+        hls.attachMedia(el.audio);
+      });
+    }
+    el.audio.src = streamUrl;
+    return el.audio.play();
+  }
+
   function playStation(station){
     state.current = station;
     setNowPlayingUI(station, "Tuning in…");
@@ -1125,8 +1245,7 @@
       .catch(function(){ return station.url_resolved || station.url; })
       .then(function(streamUrl){
         if (!streamUrl){ throw new Error("no stream url"); }
-        el.audio.src = streamUrl;
-        return el.audio.play();
+        return attachStream(streamUrl, station);
       })
       .then(function(){
         state.isPlaying = true;
@@ -1144,6 +1263,7 @@
 
   function refreshCardHighlight(){
     Array.prototype.forEach.call(el.grid.children, function(card){ card.classList.remove("is-playing"); });
+    Array.prototype.forEach.call(el.featuredWrap.children, function(card){ card.classList.remove("is-playing"); });
   }
 
   function togglePlayback(){
