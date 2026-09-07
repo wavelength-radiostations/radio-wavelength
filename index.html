@@ -266,6 +266,53 @@
   .settings-volume input{flex:1;accent-color:var(--amber);}
   .settings-volume span{font-family:'IBM Plex Mono',monospace;font-size:12px;color:var(--muted);width:36px;text-align:right;}
 
+  /* ---------- admin ---------- */
+  #adminBtn.is-unlocked{color:var(--green);border-color:var(--green);}
+  .admin-panel__email{font-family:'IBM Plex Mono',monospace;font-size:12.5px;color:var(--amber);word-break:break-all;}
+  .admin-panel__hint{font-family:'IBM Plex Mono',monospace;font-size:12px;color:var(--muted);line-height:1.5;margin:0;}
+  .admin-logout-btn{
+    width:100%;background:none;border:1px solid var(--line);color:var(--danger);
+    padding:9px 0;border-radius:8px;font-size:13px;font-weight:500;
+    transition:border-color .15s ease,background .15s ease;
+  }
+  .admin-logout-btn:hover{border-color:var(--danger);background:rgba(226,114,91,0.1);}
+
+  .admin-overlay{
+    position:fixed;inset:0;background:rgba(10,11,16,0.6);
+    display:flex;align-items:center;justify-content:center;z-index:40;
+    opacity:0;pointer-events:none;transition:opacity .18s ease;
+  }
+  .admin-overlay.is-open{opacity:1;pointer-events:auto;}
+  .admin-modal{
+    width:320px;max-width:calc(100vw - 40px);background:var(--panel);
+    border:1px solid var(--line);border-radius:var(--radius);padding:18px;
+    box-shadow:0 20px 50px rgba(0,0,0,0.45);
+  }
+  .admin-field{display:block;margin-bottom:12px;}
+  .admin-field span{
+    display:block;font-family:'IBM Plex Mono',monospace;font-size:10.5px;color:var(--muted);
+    text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px;
+  }
+  .admin-field input{
+    width:100%;background:var(--ink);border:1px solid var(--line);color:var(--paper);
+    padding:9px 12px;border-radius:8px;font-size:14px;
+  }
+  .admin-modal__error{
+    font-family:'IBM Plex Mono',monospace;font-size:12px;color:var(--danger);
+    min-height:16px;margin-bottom:8px;
+  }
+  .admin-modal__submit{
+    width:100%;background:var(--amber);border:1px solid var(--amber);color:var(--ink);
+    padding:10px 0;border-radius:8px;font-size:13.5px;font-weight:600;
+  }
+  .admin-modal__submit:hover{opacity:.92;}
+
+  .card__rename{
+    display:none;background:none;border:none;color:var(--muted);font-size:13px;flex:none;padding:2px;line-height:1;
+  }
+  .card__rename:hover{color:var(--amber);}
+  body.is-admin .card__rename{display:inline-flex;}
+
   /* ---------- toast ---------- */
   .toast{
     position:fixed;left:50%;bottom:90px;transform:translate(-50%,12px);
@@ -293,6 +340,16 @@
       <div class="search">
         <input id="searchInput" type="text" placeholder="Search a station, city, or genre" autocomplete="off" />
       </div>
+      <button class="settings-btn" id="adminBtn" type="button" aria-haspopup="true" aria-expanded="false" aria-label="Admin" title="Admin">
+        <svg id="adminIconLocked" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="4" y="10.5" width="16" height="10" rx="2"/>
+          <path d="M7.5 10.5V7a4.5 4.5 0 0 1 9 0v3.5"/>
+        </svg>
+        <svg id="adminIconUnlocked" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" style="display:none;">
+          <rect x="4" y="10.5" width="16" height="10" rx="2"/>
+          <path d="M7.5 10.5V7a4.5 4.5 0 0 1 8.6-1.8"/>
+        </svg>
+      </button>
       <button class="settings-btn" id="settingsBtn" type="button" aria-haspopup="true" aria-expanded="false" aria-label="Settings" title="Settings">
         <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
           <circle cx="12" cy="12" r="3"/>
@@ -360,6 +417,44 @@
   </div>
 </div>
 
+<div class="settings-panel" id="adminPanel" role="dialog" aria-label="Admin">
+  <div class="settings-panel__head">
+    <h3>Admin</h3>
+    <button class="settings-panel__close" id="adminPanelClose" type="button" aria-label="Close admin panel">✕</button>
+  </div>
+  <div class="settings-section">
+    <span class="settings-section__label">Signed in as</span>
+    <div class="admin-panel__email" id="adminSignedInEmail"></div>
+  </div>
+  <div class="settings-section">
+    <span class="settings-section__label">Rename mode</span>
+    <p class="admin-panel__hint">A ✎ icon now appears on every station card. Click it to rename that station on this site.</p>
+  </div>
+  <button class="admin-logout-btn" id="adminLogoutBtn" type="button">Log out</button>
+</div>
+
+<div class="admin-overlay" id="adminOverlay" role="dialog" aria-modal="true" aria-label="Admin sign in">
+  <div class="admin-modal">
+    <div class="settings-panel__head">
+      <h3>Admin sign-in</h3>
+      <button class="settings-panel__close" id="adminModalClose" type="button" aria-label="Close">✕</button>
+    </div>
+    <p class="admin-panel__hint">Verify your email to unlock station renaming. Your browser can remember this login for next time.</p>
+    <form id="adminForm" autocomplete="on">
+      <label class="admin-field">
+        <span>Email</span>
+        <input type="email" id="adminEmailInput" name="username" autocomplete="username" required />
+      </label>
+      <label class="admin-field">
+        <span>Password</span>
+        <input type="password" id="adminPasswordInput" name="password" autocomplete="current-password" required />
+      </label>
+      <div class="admin-modal__error" id="adminError"></div>
+      <button class="admin-modal__submit" id="adminSubmitBtn" type="submit">Verify &amp; sign in</button>
+    </form>
+  </div>
+</div>
+
 <div class="toast" id="toast"></div>
 <audio id="audio" preload="none"></audio>
 
@@ -416,7 +511,21 @@
     themeDarkBtn: document.getElementById("themeDarkBtn"),
     themeLightBtn: document.getElementById("themeLightBtn"),
     settingsVolume: document.getElementById("settingsVolume"),
-    settingsVolumeVal: document.getElementById("settingsVolumeVal")
+    settingsVolumeVal: document.getElementById("settingsVolumeVal"),
+    adminBtn: document.getElementById("adminBtn"),
+    adminIconLocked: document.getElementById("adminIconLocked"),
+    adminIconUnlocked: document.getElementById("adminIconUnlocked"),
+    adminPanel: document.getElementById("adminPanel"),
+    adminPanelClose: document.getElementById("adminPanelClose"),
+    adminSignedInEmail: document.getElementById("adminSignedInEmail"),
+    adminLogoutBtn: document.getElementById("adminLogoutBtn"),
+    adminOverlay: document.getElementById("adminOverlay"),
+    adminForm: document.getElementById("adminForm"),
+    adminModalClose: document.getElementById("adminModalClose"),
+    adminEmailInput: document.getElementById("adminEmailInput"),
+    adminPasswordInput: document.getElementById("adminPasswordInput"),
+    adminError: document.getElementById("adminError"),
+    adminSubmitBtn: document.getElementById("adminSubmitBtn")
   };
 
   var PAGE_SIZE = 40;
@@ -441,7 +550,9 @@
     reqId: 0,
     hlsInstance: null,
     featuredChecked: false,
-    featuredStation: null
+    featuredStation: null,
+    isAdmin: false,
+    nameOverrides: {}
   };
 
   /* Bumps the active request token. Any in-flight response whose captured
@@ -496,6 +607,109 @@
       window.localStorage.setItem(STORAGE_KEY, JSON.stringify(state.favorites));
     } catch(e){ /* storage full or unavailable — favorites just won't persist */ }
   }
+  /* ---------------- admin: sign-in + station renaming ----------------
+     No server exists here, so "verification" just means these two values
+     have to match what's typed in the modal. Anyone who reads this file's
+     source can see them — this is a soft gate, not real security. Renamed
+     stations are saved to this browser's localStorage only; they won't
+     show up for other visitors or other devices. */
+  var ADMIN_EMAIL = "pleco2021@protonmail.com";
+  var ADMIN_PASSWORD = "Mathijsvs1!";
+  var ADMIN_STORAGE_KEY = "wavelength.isAdmin";
+  var NAME_OVERRIDES_KEY = "wavelength.nameOverrides";
+
+  function loadAdminState(){
+    try { state.isAdmin = window.localStorage.getItem(ADMIN_STORAGE_KEY) === "1"; }
+    catch(e){ state.isAdmin = false; }
+  }
+  function persistAdminState(v){
+    try { window.localStorage.setItem(ADMIN_STORAGE_KEY, v ? "1" : "0"); } catch(e){}
+  }
+  function loadNameOverrides(){
+    try {
+      var raw = window.localStorage.getItem(NAME_OVERRIDES_KEY);
+      state.nameOverrides = raw ? (JSON.parse(raw) || {}) : {};
+    } catch(e){ state.nameOverrides = {}; }
+  }
+  function saveNameOverrides(){
+    try { window.localStorage.setItem(NAME_OVERRIDES_KEY, JSON.stringify(state.nameOverrides)); }
+    catch(e){ /* storage full or unavailable — rename just won't persist */ }
+  }
+  function getDisplayName(station){
+    if (!station) return "Unnamed station";
+    var override = station.stationuuid && state.nameOverrides[station.stationuuid];
+    return override || station.name || "Unnamed station";
+  }
+  function setStationNameOverride(station, newName){
+    if (!station || !station.stationuuid) return;
+    var trimmed = (newName || "").trim();
+    if (trimmed && trimmed !== station.name){
+      state.nameOverrides[station.stationuuid] = trimmed;
+    } else {
+      delete state.nameOverrides[station.stationuuid];
+    }
+    saveNameOverrides();
+  }
+
+  function refreshAdminUI(){
+    document.body.classList.toggle("is-admin", state.isAdmin);
+    el.adminBtn.classList.toggle("is-unlocked", state.isAdmin);
+    el.adminIconLocked.style.display = state.isAdmin ? "none" : "";
+    el.adminIconUnlocked.style.display = state.isAdmin ? "" : "none";
+    el.adminSignedInEmail.textContent = state.isAdmin ? ADMIN_EMAIL : "";
+  }
+
+  function openAdminOverlay(){
+    el.adminError.textContent = "";
+    el.adminPasswordInput.value = "";
+    el.adminOverlay.classList.add("is-open");
+    el.adminEmailInput.focus();
+  }
+  function closeAdminOverlay(){
+    el.adminOverlay.classList.remove("is-open");
+  }
+  function openAdminPanel(){
+    el.adminPanel.classList.add("is-open");
+  }
+  function closeAdminPanel(){
+    el.adminPanel.classList.remove("is-open");
+  }
+
+  function attemptAdminLogin(){
+    var email = el.adminEmailInput.value.trim().toLowerCase();
+    var pass = el.adminPasswordInput.value;
+    if (email === ADMIN_EMAIL.toLowerCase() && pass === ADMIN_PASSWORD){
+      state.isAdmin = true;
+      persistAdminState(true);
+      refreshAdminUI();
+      closeAdminOverlay();
+      showToast("Signed in. Station names can now be edited.");
+    } else {
+      el.adminError.textContent = "Email or password didn't match.";
+    }
+  }
+
+  function adminLogout(){
+    state.isAdmin = false;
+    persistAdminState(false);
+    refreshAdminUI();
+    closeAdminPanel();
+    showToast("Signed out of admin.");
+  }
+
+  function renameStationPrompt(station, nameEl){
+    var current = getDisplayName(station);
+    var next = window.prompt("New name for this station (leave blank to reset to the original name):", current);
+    if (next === null) return;
+    setStationNameOverride(station, next);
+    var updated = getDisplayName(station);
+    nameEl.textContent = updated;
+    if (state.current && state.current.stationuuid === station.stationuuid){
+      setNowPlayingUI(station, state.isPlaying ? null : el.nowMeta.textContent);
+    }
+    showToast(next.trim() ? "Station renamed to \u201c" + updated + "\u201d." : "Station name reset.");
+  }
+
   function isFavorite(uuid){
     return state.favorites.some(function(s){ return s.stationuuid === uuid; });
   }
@@ -745,7 +959,7 @@
     body.className = "card__body";
     var name = document.createElement("div");
     name.className = "card__name";
-    name.textContent = station.name || "Unnamed station";
+    name.textContent = getDisplayName(station);
     var meta = document.createElement("div");
     meta.className = "card__meta";
     var metaBits = [];
@@ -780,6 +994,14 @@
       body.appendChild(tagRow);
     }
 
+    var rename = document.createElement("button");
+    rename.type = "button";
+    rename.className = "card__rename";
+    rename.textContent = "✎";
+    rename.setAttribute("data-role", "rename");
+    rename.setAttribute("aria-label", "Rename station");
+    rename.title = "Rename station";
+
     var star = document.createElement("span");
     star.className = "card__star" + (isFavorite(station.stationuuid) ? " is-fav" : "");
     star.textContent = isFavorite(station.stationuuid) ? "★" : "☆";
@@ -787,6 +1009,7 @@
 
     card.appendChild(icon);
     card.appendChild(body);
+    card.appendChild(rename);
     card.appendChild(star);
 
     card.addEventListener("click", function(e){
@@ -796,6 +1019,12 @@
         toggleFavorite(station);
         star.classList.toggle("is-fav");
         star.textContent = star.classList.contains("is-fav") ? "★" : "☆";
+        return;
+      }
+      if (role === "rename"){
+        e.stopPropagation();
+        if (!state.isAdmin) return;
+        renameStationPrompt(station, name);
         return;
       }
       if (role === "tag"){
@@ -1188,7 +1417,7 @@
   }
 
   function setNowPlayingUI(station, statusText){
-    el.nowName.textContent = station.name || "Unnamed station";
+    el.nowName.textContent = getDisplayName(station);
     el.nowMeta.textContent = statusText || [station.country, station.bitrate ? station.bitrate + " kbps" : ""].filter(Boolean).join(" · ");
   }
 
@@ -1310,6 +1539,33 @@
     else openSettings();
   });
   el.settingsClose.addEventListener("click", closeSettings);
+  el.adminBtn.addEventListener("click", function(e){
+    e.stopPropagation();
+    if (state.isAdmin){
+      if (el.adminPanel.classList.contains("is-open")) closeAdminPanel();
+      else openAdminPanel();
+    } else {
+      openAdminOverlay();
+    }
+  });
+  el.adminPanelClose.addEventListener("click", closeAdminPanel);
+  el.adminLogoutBtn.addEventListener("click", adminLogout);
+  el.adminModalClose.addEventListener("click", closeAdminOverlay);
+  el.adminOverlay.addEventListener("click", function(e){
+    if (e.target === el.adminOverlay) closeAdminOverlay();
+  });
+  el.adminForm.addEventListener("submit", function(e){
+    e.preventDefault();
+    attemptAdminLogin();
+  });
+  document.addEventListener("click", function(e){
+    if (!el.adminPanel.classList.contains("is-open")) return;
+    if (el.adminPanel.contains(e.target) || el.adminBtn.contains(e.target)) return;
+    closeAdminPanel();
+  });
+  document.addEventListener("keydown", function(e){
+    if (e.key === "Escape"){ closeAdminOverlay(); closeAdminPanel(); }
+  });
   el.themeDarkBtn.addEventListener("click", function(){ applyTheme("dark"); });
   el.themeLightBtn.addEventListener("click", function(){ applyTheme("light"); });
   document.addEventListener("click", function(e){
@@ -1356,6 +1612,9 @@
   window.addEventListener("resize", positionNeedle);
 
   /* ---------------- init ---------------- */
+  loadAdminState();
+  loadNameOverrides();
+  refreshAdminUI();
   loadTheme();
   populateClockOffsets();
   tickClock();
