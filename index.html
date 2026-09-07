@@ -1,4 +1,4 @@
-<!DOCTYPE html> 
+<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8" />
@@ -235,18 +235,23 @@
 
   .settings-panel{
     position:fixed;top:66px;right:24px;width:270px;max-width:calc(100vw - 32px);
+    max-height:calc(100vh - 90px);overflow-y:auto;overscroll-behavior:contain;
     background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);
     padding:16px;z-index:30;box-shadow:0 16px 40px rgba(0,0,0,0.35);
     opacity:0;transform:translateY(-8px);pointer-events:none;
     transition:opacity .18s ease,transform .18s ease,background .25s ease,border-color .25s ease;
   }
   .settings-panel.is-open{opacity:1;transform:translateY(0);pointer-events:auto;}
-  .settings-panel__head{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;}
+  .settings-panel__head{display:flex;justify-content:space-between;align-items:center;margin:0 -16px 14px;padding:2px 16px 16px;position:sticky;top:0;background:var(--panel);z-index:1;}
   .settings-panel__head h3{margin:0;font-size:15px;font-weight:600;}
   .settings-panel__close{background:none;border:none;color:var(--muted);font-size:15px;padding:2px;line-height:1;}
   .settings-panel__close:hover{color:var(--paper);}
   .settings-section{margin-bottom:16px;}
   .settings-section:last-child{margin-bottom:0;}
+  .settings-panel::-webkit-scrollbar{width:8px;}
+  .settings-panel::-webkit-scrollbar-thumb{background:rgba(237,234,227,0.18);border-radius:8px;}
+  .settings-panel::-webkit-scrollbar-thumb:hover{background:rgba(237,234,227,0.3);}
+  .settings-panel{scrollbar-width:thin;scrollbar-color:rgba(237,234,227,0.18) transparent;}
   .settings-section__label{
     font-family:'IBM Plex Mono',monospace;font-size:10.5px;color:var(--muted);
     text-transform:uppercase;letter-spacing:.05em;margin-bottom:9px;display:block;
