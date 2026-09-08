@@ -234,7 +234,7 @@
   .settings-btn.is-open{color:var(--amber);border-color:var(--amber);transform:rotate(35deg);}
 
   .settings-panel{
-    position:fixed;top:66px;right:24px;width:270px;max-width:calc(100vw - 32px);
+    position:fixed;top:66px;right:24px;width:320px;max-width:calc(100vw - 32px);
     max-height:calc(100vh - 90px);overflow-y:auto;overscroll-behavior:contain;
     background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);
     padding:16px;z-index:30;box-shadow:0 16px 40px rgba(0,0,0,0.35);
@@ -259,17 +259,39 @@
   .theme-toggle{display:flex;gap:6px;}
   .theme-toggle button{
     flex:1;background:none;border:1px solid var(--line);color:var(--muted);
-    padding:9px 0 8px;border-radius:8px;font-size:12px;font-weight:500;
+    padding:9px 0 8px;border-radius:8px;font-size:11.5px;font-weight:500;
     display:flex;flex-direction:column;align-items:center;gap:4px;
     transition:color .15s ease,border-color .15s ease,background .15s ease;
   }
-  .theme-toggle button span{font-size:15px;}
+  .theme-toggle button span{font-size:15px;line-height:1;}
   .theme-toggle button:hover{color:var(--paper);border-color:rgba(237,234,227,0.25);}
   .theme-toggle button.is-active{color:var(--ink);background:var(--amber);border-color:var(--amber);}
   .theme-toggle button.is-active:hover{color:var(--ink);}
   .settings-volume{display:flex;align-items:center;gap:10px;}
   .settings-volume input{flex:1;accent-color:var(--amber);}
   .settings-volume span{font-family:'IBM Plex Mono',monospace;font-size:12px;color:var(--muted);width:36px;text-align:right;}
+
+  /* sleep timer */
+  .sleep-toggle{display:flex;gap:6px;flex-wrap:wrap;}
+  .sleep-toggle button{
+    flex:1 1 calc(50% - 3px);min-width:0;background:none;border:1px solid var(--line);color:var(--muted);
+    padding:9px 0 8px;border-radius:8px;font-size:12px;font-weight:500;
+    display:flex;align-items:center;justify-content:center;gap:6px;
+    transition:color .15s ease,border-color .15s ease,background .15s ease;
+  }
+  .sleep-toggle button:hover{color:var(--paper);border-color:rgba(237,234,227,0.25);}
+  .sleep-toggle button.is-active{color:var(--ink);background:var(--amber);border-color:var(--amber);}
+  .sleep-toggle button.is-active:hover{color:var(--ink);}
+
+  /* sleep-timer chip in the player bar */
+  .sleep-chip{
+    display:none;align-items:center;gap:6px;flex:none;cursor:pointer;
+    font-family:'IBM Plex Mono',monospace;font-size:11.5px;color:var(--amber);
+    border:1px solid rgba(232,163,61,0.45);border-radius:14px;padding:4px 10px;
+    transition:background .15s ease,border-color .15s ease;
+  }
+  .sleep-chip:hover{background:var(--amber-dim);border-color:var(--amber);}
+  .sleep-chip.is-on{display:inline-flex;}
 
   /* ---------- updates ---------- */
   .update-toggle{display:flex;gap:6px;}
@@ -426,6 +448,7 @@
   </div>
   <div class="player__onair" id="onair"><span></span>On air</div>
   <button class="player__fav" id="favBtn" aria-label="Save favorite" disabled>☆</button>
+  <button class="sleep-chip" id="sleepChip" type="button" aria-label="Sleep timer" title="Tap to cancel sleep timer" hidden>⏱ <span id="sleepChipText"></span></button>
   <input class="player__volume" id="volume" type="range" min="0" max="100" value="80" aria-label="Volume" />
 </div>
 
@@ -437,9 +460,11 @@
   <div class="settings-section">
     <span class="settings-section__label">Appearance</span>
     <div class="theme-toggle">
+      <button type="button" id="themeSystemBtn" data-theme-choice="system"><span>🖥️</span>System</button>
       <button type="button" id="themeDarkBtn" data-theme-choice="dark"><span>🌙</span>Evening</button>
       <button type="button" id="themeLightBtn" data-theme-choice="light"><span>☀️</span>Daylight</button>
     </div>
+    <p class="update-hint" id="themeHint">System follows your device's light or dark setting.</p>
   </div>
   <div class="settings-section">
     <span class="settings-section__label">Volume</span>
@@ -459,6 +484,16 @@
       </button>
     </div>
     <p class="update-hint" id="updateHint">Manual refreshes the station list on demand. Automatic keeps it fresh every 5 minutes.</p>
+  </div>
+  <div class="settings-section">
+    <span class="settings-section__label">Sleep timer</span>
+    <div class="sleep-toggle" id="sleepToggle">
+      <button type="button" class="sleep-btn" data-sleep="0">Off</button>
+      <button type="button" class="sleep-btn" data-sleep="15">15 min</button>
+      <button type="button" class="sleep-btn" data-sleep="30">30 min</button>
+      <button type="button" class="sleep-btn" data-sleep="60">60 min</button>
+    </div>
+    <p class="update-hint" id="sleepHint">Pauses whatever is playing after the chosen time. Tap the chip in the player to cancel early.</p>
   </div>
   <div class="settings-section">
     <span class="settings-section__label">My account</span>
@@ -621,6 +656,12 @@
     settingsClose: document.getElementById("settingsClose"),
     themeDarkBtn: document.getElementById("themeDarkBtn"),
     themeLightBtn: document.getElementById("themeLightBtn"),
+    themeSystemBtn: document.getElementById("themeSystemBtn"),
+    themeHint: document.getElementById("themeHint"),
+    sleepToggle: document.getElementById("sleepToggle"),
+    sleepHint: document.getElementById("sleepHint"),
+    sleepChip: document.getElementById("sleepChip"),
+    sleepChipText: document.getElementById("sleepChipText"),
     settingsVolume: document.getElementById("settingsVolume"),
     settingsVolumeVal: document.getElementById("settingsVolumeVal"),
     adminBtn: document.getElementById("adminBtn"),
@@ -1039,20 +1080,60 @@
 
   /* ---------------- theme ---------------- */
   var THEME_STORAGE_KEY = "wavelength.theme";
-  function applyTheme(theme){
-    if (theme === "light"){
+  var systemThemeQuery = null;
+  var systemThemeHandler = null;
+
+  function resolvedTheme(pref){
+    if (pref === "light") return "light";
+    if (pref === "system"){
+      try {
+        return window.matchMedia("(prefers-color-scheme: light)").matches ? "light" : "dark";
+      } catch(e){ return "dark"; }
+    }
+    return "dark";
+  }
+
+  function renderTheme(pref){
+    var resolved = resolvedTheme(pref);
+    if (resolved === "light"){
       document.documentElement.setAttribute("data-theme", "light");
     } else {
       document.documentElement.removeAttribute("data-theme");
-      theme = "dark";
     }
-    el.themeDarkBtn.classList.toggle("is-active", theme === "dark");
-    el.themeLightBtn.classList.toggle("is-active", theme === "light");
-    try { window.localStorage.setItem(THEME_STORAGE_KEY, theme); } catch(e){ /* storage unavailable */ }
+    el.themeDarkBtn.classList.toggle("is-active", pref === "dark");
+    el.themeLightBtn.classList.toggle("is-active", pref === "light");
+    el.themeSystemBtn.classList.toggle("is-active", pref === "system");
+    if (el.themeHint){
+      el.themeHint.textContent = pref === "system"
+        ? "System follows your device's light or dark setting."
+        : (pref === "light" ? "Daylight theme — bright paper tones." : "Evening theme — easy on the eyes after dark.");
+    }
   }
+
+  function applyTheme(theme){
+    var pref = (theme === "light" || theme === "system") ? theme : "dark";
+    renderTheme(pref);
+    try { window.localStorage.setItem(THEME_STORAGE_KEY, pref); } catch(e){ /* storage unavailable */ }
+    /* Listen for OS changes only while System is selected. */
+    if (pref === "system"){
+      if (!systemThemeQuery){
+        try { systemThemeQuery = window.matchMedia("(prefers-color-scheme: light)"); } catch(e){ systemThemeQuery = null; }
+      }
+      if (systemThemeQuery && !systemThemeHandler){
+        systemThemeHandler = function(){ renderTheme("system"); };
+        if (systemThemeQuery.addEventListener){ systemThemeQuery.addEventListener("change", systemThemeHandler); }
+        else if (systemThemeQuery.addListener){ systemThemeQuery.addListener(systemThemeHandler); }
+      }
+    } else if (systemThemeQuery && systemThemeHandler){
+      if (systemThemeQuery.removeEventListener){ systemThemeQuery.removeEventListener("change", systemThemeHandler); }
+      else if (systemThemeQuery.removeListener){ systemThemeQuery.removeListener(systemThemeHandler); }
+      systemThemeHandler = null;
+    }
+  }
+
   function loadTheme(){
-    var saved = "dark";
-    try { saved = window.localStorage.getItem(THEME_STORAGE_KEY) || "dark"; } catch(e){}
+    var saved = "system";
+    try { saved = window.localStorage.getItem(THEME_STORAGE_KEY) || "system"; } catch(e){}
     applyTheme(saved);
   }
 
@@ -1141,13 +1222,14 @@
       favorites: state.favorites || [],
       nameOverrides: state.nameOverrides || {},
       preferences: {
-        theme: "dark",
+        theme: "system",
         clockOffset: "local",
         autoUpdate: !!state.autoUpdate,
+        sleepMinutes: sleepMinutes || 0,
         volume: Math.round((el.audio.volume || 0) * 100)
       }
     };
-    try { data.preferences.theme = window.localStorage.getItem(THEME_STORAGE_KEY) || "dark"; } catch(e){}
+    try { data.preferences.theme = window.localStorage.getItem(THEME_STORAGE_KEY) || "system"; } catch(e){}
     try { data.preferences.clockOffset = window.localStorage.getItem(CLOCK_STORAGE_KEY) || "local"; } catch(e){}
     return data;
   }
@@ -1172,9 +1254,10 @@
     if (data.version !== BACKUP_VERSION) throw new Error("This backup version isn't supported.");
 
     var prefs = data.preferences || {};
-    var theme = prefs.theme === "light" ? "light" : "dark";
+    var theme = (prefs.theme === "light" || prefs.theme === "system") ? prefs.theme : "dark";
     var clockOffset = typeof prefs.clockOffset === "string" ? prefs.clockOffset : "local";
     var autoUpdate = !!prefs.autoUpdate;
+    var sleepMinutes = Math.max(0, Math.min(60, Math.round(Number(prefs.sleepMinutes)) || 0));
     var volume = Math.max(0, Math.min(100, Math.round(Number(prefs.volume)) || 0));
 
     var favorites = Array.isArray(data.favorites) ? data.favorites.filter(function(s){
@@ -1196,6 +1279,7 @@
       window.localStorage.setItem(THEME_STORAGE_KEY, theme);
       window.localStorage.setItem(CLOCK_STORAGE_KEY, clockOffset);
       window.localStorage.setItem(AUTO_UPDATE_KEY, autoUpdate ? "1" : "0");
+      window.localStorage.setItem(SLEEP_STORAGE_KEY, String(sleepMinutes));
       window.localStorage.setItem(VOLUME_STORAGE_KEY, String(volume));
     } catch(e){ /* storage unavailable — in-memory restore still applies below */ }
 
@@ -1207,6 +1291,11 @@
     applyTheme(theme);
     if (el.clockOffset) el.clockOffset.value = clockOffset;
     applyAutoUpdate(autoUpdate);
+    resetSleepTimer(false);
+    setSleepButtons(sleepMinutes);
+    if (sleepMinutes > 0 && el.sleepHint){
+      el.sleepHint.textContent = "Sleep timer set to " + sleepMinutes + " min. It starts counting down next time you switch it on.";
+    }
     setVolume(volume);
     refreshAccountUI();
     if (el.search) el.search.value = "";
@@ -1237,6 +1326,102 @@
   }
   function loadVolumeState(){
     try { var v = Number(window.localStorage.getItem(VOLUME_STORAGE_KEY)); if (!isNaN(v) && v >= 0 && v <= 100) setVolume(v); } catch(e){}
+  }
+
+  /* ---------------- sleep timer ----------------
+     Pauses whatever is playing after the chosen number of minutes. Does
+     not reset the station — tapping play resumes the same signal. */
+  var SLEEP_STORAGE_KEY = "wavelength.sleepMinutes";
+  var sleepEndAt = 0;        /* epoch ms when the timer fires; 0 = off */
+  var sleepMinutes = 0;     /* last chosen duration, for the active button */
+  var sleepTickTimer = null;
+
+  function fmtRemaining(ms){
+    if (ms < 0) ms = 0;
+    var s = Math.round(ms / 1000);
+    var m = Math.floor(s / 60);
+    var sec = s % 60;
+    return m + ":" + (sec < 10 ? "0" : "") + sec;
+  }
+
+  function updateSleepChip(){
+    if (!sleepEndAt){
+      el.sleepChip.classList.remove("is-on");
+      el.sleepChip.hidden = true;
+      return;
+    }
+    var remaining = sleepEndAt - Date.now();
+    if (remaining <= 0){
+      fireSleepTimer();
+      return;
+    }
+    el.sleepChip.hidden = false;
+    el.sleepChip.classList.add("is-on");
+    el.sleepChipText.textContent = fmtRemaining(remaining);
+    if (el.sleepHint){
+      el.sleepHint.textContent = "Sleeping in " + fmtRemaining(remaining) + ". Tap the chip in the player to cancel.";
+    }
+  }
+
+  function fireSleepTimer(){
+    var wasPlaying = state.isPlaying;
+    if (state.current && state.isPlaying){
+      try { el.audio.pause(); } catch(e){}
+      state.isPlaying = false;
+      el.playBtn.textContent = "▶";
+      el.player.classList.remove("is-live");
+    }
+    resetSleepTimer(true);
+    /* Reflect the now-off state on the buttons. */
+    setSleepButtons(0);
+    showToast(wasPlaying ? "Sleep timer ended — playback paused." : "Sleep timer ended.");
+  }
+
+  function resetSleepTimer(fired){
+    if (sleepTickTimer){ clearInterval(sleepTickTimer); sleepTickTimer = null; }
+    sleepEndAt = 0;
+    if (!fired){
+      el.sleepChip.classList.remove("is-on");
+      el.sleepChip.hidden = true;
+      if (el.sleepHint){ el.sleepHint.textContent = "Pauses whatever is playing after the chosen time. Tap the chip in the player to cancel early."; }
+    }
+  }
+
+  function setSleepButtons(minutes){
+    sleepMinutes = minutes;
+    Array.prototype.forEach.call(el.sleepToggle.querySelectorAll(".sleep-btn"), function(b){
+      b.classList.toggle("is-active", Number(b.getAttribute("data-sleep")) === minutes);
+    });
+  }
+
+  function applySleepTimer(minutes){
+    minutes = Math.max(0, Math.min(60, Math.round(Number(minutes) || 0)));
+    resetSleepTimer(false);
+    setSleepButtons(minutes);
+    if (sleepTickTimer){ clearInterval(sleepTickTimer); sleepTickTimer = null; }
+    if (minutes > 0){
+      sleepEndAt = Date.now() + minutes * 60 * 1000;
+      updateSleepChip();
+      sleepTickTimer = setInterval(updateSleepChip, 1000);
+    }
+    try { window.localStorage.setItem(SLEEP_STORAGE_KEY, String(minutes)); } catch(e){}
+  }
+
+  function cancelSleepTimer(){
+    if (!sleepEndAt && !sleepMinutes) return;
+    applySleepTimer(0);
+    showToast("Sleep timer canceled.");
+  }
+
+  function loadSleepState(){
+    var saved = 0;
+    try { saved = Number(window.localStorage.getItem(SLEEP_STORAGE_KEY)) || 0; } catch(e){}
+    /* Don't auto-resume a countdown across reloads — a stale end time would
+       fire immediately. Just restore the chosen duration as inactive. */
+    setSleepButtons(saved);
+    if (saved > 0 && el.sleepHint){
+      el.sleepHint.textContent = "Sleep timer set to " + saved + " min. Start playback, then it counts down next time you open this.";
+    }
   }
 
   /* ---------------- rendering: dial ---------------- */
@@ -2013,6 +2198,16 @@
   });
   el.themeDarkBtn.addEventListener("click", function(){ applyTheme("dark"); });
   el.themeLightBtn.addEventListener("click", function(){ applyTheme("light"); });
+  el.themeSystemBtn.addEventListener("click", function(){ applyTheme("system"); });
+  el.sleepToggle.addEventListener("click", function(e){
+    var btn = e.target.closest(".sleep-btn");
+    if (!btn) return;
+    var minutes = Number(btn.getAttribute("data-sleep")) || 0;
+    applySleepTimer(minutes);
+    if (minutes > 0) showToast("Sleep timer set for " + minutes + " minutes.");
+    else showToast("Sleep timer turned off.");
+  });
+  el.sleepChip.addEventListener("click", cancelSleepTimer);
   document.addEventListener("click", function(e){
     if (!el.settingsPanel.classList.contains("is-open")) return;
     if (el.settingsPanel.contains(e.target) || el.settingsBtn.contains(e.target)) return;
@@ -2061,6 +2256,7 @@
   loadNameOverrides();
   loadAutoUpdateState();
   loadVolumeState();
+  loadSleepState();
   loadAccountState();
   refreshAccountUI();
   refreshAdminUI();
@@ -2076,5 +2272,6 @@
 </script>
 </body>
 </html>
+
 
 
