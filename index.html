@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+ <!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8" />
@@ -45,7 +45,7 @@
     transition:background .25s ease,color .25s ease;
   }
   a{color:inherit;}
-  button{font-family:inherit;cursor:pointer;color:inherit;}
+  button{font-family:inherit;cursor:pointer;}
   input{font-family:inherit;}
   :focus-visible{outline:2px solid var(--amber);outline-offset:2px;}
 
@@ -197,25 +197,53 @@
   /* ---------- player ---------- */
   .player{
     position:fixed;left:0;right:0;bottom:0;background:#0d0f15;border-top:1px solid var(--line);
-    display:flex;align-items:center;gap:14px;padding:12px 20px;z-index:10;color:#edeae3;
+    display:flex;align-items:center;gap:14px;padding:12px 20px;z-index:10;
+    box-shadow:0 -10px 30px rgba(0,0,0,0.28);
   }
-  .player__scan,.player__play,.player__fav{
-    background:none;border:1px solid rgba(237,234,227,0.2);color:#edeae3;border-radius:50%;
+  .player__art{
+    position:relative;width:42px;height:42px;border-radius:9px;background:var(--ink);flex:none;
+    overflow:hidden;display:flex;align-items:center;justify-content:center;
+    border:1px solid var(--line);transition:border-color .25s ease;
+  }
+  .player__art-fallback{color:var(--muted);display:flex;align-items:center;justify-content:center;}
+  .player__art img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;}
+  .player.is-live .player__art{border-color:var(--amber);}
+  @media (prefers-reduced-motion:no-preference){
+    .player.is-buffering .player__art{animation:tuning-pulse 1.1s ease-out infinite;}
+    @keyframes tuning-pulse{
+      0%{box-shadow:0 0 0 0 var(--amber-dim);}
+      100%{box-shadow:0 0 0 9px rgba(232,163,61,0);}
+    }
+  }
+  .player__scan,.player__play,.player__fav,.player__mute{
+    background:none;border:1px solid var(--line);color:var(--paper);border-radius:50%;
     width:38px;height:38px;flex:none;font-size:15px;display:flex;align-items:center;justify-content:center;
+    transition:color .15s ease,border-color .15s ease,transform .1s ease,filter .15s ease;
   }
-  .player__play{background:var(--amber);color:#12141c;border-color:var(--amber);width:42px;height:42px;font-size:16px;}
+  .player__scan:hover,.player__fav:hover,.player__mute:hover{color:var(--amber);border-color:var(--amber);}
+  .player__scan:active,.player__play:active,.player__fav:active,.player__mute:active{transform:scale(.9);}
+  .player__play{background:var(--amber);color:var(--ink);border-color:var(--amber);width:42px;height:42px;font-size:16px;}
+  .player__play:hover{filter:brightness(1.1);}
   .player__fav.is-fav{color:var(--amber);border-color:var(--amber);}
+  .player__mute.is-muted{color:var(--danger);border-color:var(--danger);}
   .player__info{min-width:0;flex:1;}
   .player__name{font-size:14px;font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
-  .player__meta{font-family:'IBM Plex Mono',monospace;font-size:11.5px;color:#8b90a0;
+  .player__meta{font-family:'IBM Plex Mono',monospace;font-size:11.5px;color:var(--muted);
     overflow:hidden;text-overflow:ellipsis;white-space:nowrap;margin-top:2px;}
-  .player__onair{display:none;align-items:center;gap:6px;font-family:'IBM Plex Mono',monospace;
-    font-size:11px;color:var(--green);flex:none;}
-  .player__onair span{width:7px;height:7px;border-radius:50%;background:var(--green);}
+  .player__onair{display:none;align-items:center;gap:7px;font-family:'IBM Plex Mono',monospace;
+    font-size:10.5px;color:var(--green);flex:none;background:rgba(111,207,151,0.14);
+    padding:5px 10px 5px 9px;border-radius:12px;text-transform:uppercase;letter-spacing:.04em;}
+  .player__onair-eq{display:flex;align-items:flex-end;gap:2px;height:10px;}
+  .player__onair-eq i{width:2.5px;background:var(--green);border-radius:1px;display:block;}
   .player.is-live .player__onair{display:flex;}
   @media (prefers-reduced-motion:no-preference){
-    .player.is-live .player__onair span{animation:pulse 1.4s ease infinite;}
-    @keyframes pulse{0%,100%{opacity:1;}50%{opacity:.3;}}
+    .player__onair-eq i{height:4px;animation:eqbar .9s ease-in-out infinite;}
+    .player__onair-eq i:nth-child(2){animation-delay:.18s;}
+    .player__onair-eq i:nth-child(3){animation-delay:.34s;}
+    @keyframes eqbar{0%,100%{height:3px;}50%{height:10px;}}
+  }
+  @media (prefers-reduced-motion:reduce){
+    .player__onair-eq i{height:7px;}
   }
   .player__volume{width:90px;accent-color:var(--amber);flex:none;}
   @media (max-width:640px){
@@ -381,143 +409,6 @@
     max-width:80vw;text-align:center;
   }
   .toast.is-visible{opacity:1;transform:translate(-50%,0);}
-
-  /* ---------- screen-reader live region ---------- */
-  .sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0;}
-
-  /* ---------- onboarding banner ---------- */
-  .onboarding{
-    display:flex;gap:12px;align-items:flex-start;
-    background:var(--amber-dim);border:1px solid rgba(232,163,61,0.4);
-    border-radius:var(--radius);padding:14px 16px;margin:18px 0 4px;
-  }
-  .onboarding.is-hidden{display:none;}
-  .onboarding__body{flex:1;min-width:0;}
-  .onboarding__title{font-size:13.5px;font-weight:600;margin:0 0 4px;}
-  .onboarding__text{font-family:'IBM Plex Mono',monospace;font-size:12px;color:var(--muted);line-height:1.6;margin:0;}
-  .onboarding__text b{color:var(--paper);font-weight:500;}
-  .onboarding__close{background:none;border:none;color:var(--muted);font-size:16px;padding:2px 4px;line-height:1;flex:none;}
-  .onboarding__close:hover{color:var(--paper);}
-
-  /* ---------- recently played ---------- */
-  .recently{margin:6px 0 18px;}
-  .recently.is-hidden{display:none;}
-  .recently__label{
-    font-family:'IBM Plex Mono',monospace;font-size:10.5px;color:var(--muted);
-    text-transform:uppercase;letter-spacing:.05em;margin-bottom:9px;display:flex;align-items:center;gap:6px;
-  }
-  .recently__label::before{content:"";width:6px;height:6px;border-radius:50%;background:var(--muted);}
-  .recently__grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:10px;}
-  .recently__card{
-    background:var(--panel);border:1px solid transparent;border-left:2px solid var(--line);
-    border-radius:8px;padding:9px 11px;text-align:left;width:100%;color:inherit;
-    transition:background .15s ease,border-color .15s ease;
-  }
-  .recently__card:hover{background:var(--panel-hover);}
-  .recently__card.is-playing{border-left-color:var(--amber);background:var(--panel-hover);}
-  .recently__name{font-size:12.5px;font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
-  .recently__meta{font-family:'IBM Plex Mono',monospace;font-size:10.5px;color:var(--muted);
-      margin-top:3px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
-
-  /* ---------- player retry button ---------- */
-  .player__retry{display:none;align-items:center;gap:6px;flex:none;cursor:pointer;
-    font-family:'IBM Plex Mono',monospace;font-size:11.5px;color:var(--danger);
-    border:1px solid rgba(226,114,91,0.5);border-radius:14px;padding:5px 11px;background:none;
-    transition:background .15s ease,border-color .15s ease;}
-  .player__retry:hover{background:rgba(226,114,91,0.12);border-color:var(--danger);}
-  .player__retry.is-visible{display:inline-flex;}
-
-  /* ---------- in-app rename modal ---------- */
-  .rename-overlay{
-    position:fixed;inset:0;background:rgba(10,11,16,0.6);
-    display:flex;align-items:center;justify-content:center;z-index:45;
-    opacity:0;pointer-events:none;transition:opacity .18s ease;
-  }
-  .rename-overlay.is-open{opacity:1;pointer-events:auto;}
-  .rename-modal{width:330px;max-width:calc(100vw - 40px);background:var(--panel);
-    border:1px solid var(--line);border-radius:var(--radius);padding:18px;
-    box-shadow:0 20px 50px rgba(0,0,0,0.45);}
-  .rename-modal h3{margin:0 0 4px;font-size:15px;font-weight:600;}
-  .rename-modal__original{font-family:'IBM Plex Mono',monospace;font-size:12px;color:var(--muted);margin:0 0 14px;word-break:break-word;}
-  .rename-modal input{
-    width:100%;background:var(--ink);border:1px solid var(--line);color:var(--paper);
-    padding:10px 12px;border-radius:8px;font-size:14px;}
-  .rename-modal__error{font-family:'IBM Plex Mono',monospace;font-size:12px;color:var(--danger);min-height:16px;margin:8px 0;}
-  .rename-modal__hint{font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--muted);line-height:1.5;margin:0 0 14px;}
-  .rename-modal__actions{display:flex;gap:8px;justify-content:flex-end;}
-  .rename-modal__actions button{
-    background:none;border:1px solid var(--line);color:var(--muted);
-    padding:9px 16px;border-radius:8px;font-size:13px;font-weight:500;
-    transition:color .15s ease,border-color .15s ease,background .15s ease;}
-  .rename-modal__actions button:hover{color:var(--paper);border-color:rgba(237,234,227,0.25);}
-  .rename-modal__actions .rename-submit{background:var(--amber);border-color:var(--amber);color:var(--ink);}
-  .rename-modal__actions .rename-submit:hover{color:var(--ink);opacity:.92;}
-
-  /* ---------- confirm dialog ---------- */
-  .confirm-modal__text{font-family:'IBM Plex Mono',monospace;font-size:12.5px;color:var(--muted);line-height:1.6;margin:0 0 14px;}
-
-  /* ---------- mobile touch-target polish ---------- */
-  @media (max-width:640px){
-    .card{padding:13px;}
-    .card__icon{width:44px;height:44px;}
-    .card__star,.card__rename{font-size:18px;padding:6px;}
-    .player{padding:12px 14px;gap:10px;}
-    .player__scan,.player__play,.player__fav{width:42px;height:42px;}
-    .player__play{width:46px;height:46px;}
-    .dial__btn{padding:10px 16px;font-size:14px;}
-    .pill{padding:8px 13px;}
-    .settings-btn{width:38px;height:38px;}
-    .search input{width:100%;}
-    .header__right{gap:12px;width:100%;}
-    .search{flex:1;}
-  .toast.is-visible{opacity:1;transform:translate(-50%,0);}
-
-  /* ---------- now-playing artwork + equalizer ---------- */
-  .player__art{width:40px;height:40px;border-radius:8px;background:var(--ink);flex:none;
-    position:relative;overflow:hidden;display:flex;align-items:center;justify-content:center;}
-  .player__art img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:none;}
-  .player__art.has-art img{display:block;}
-  .player__eq{display:flex;align-items:flex-end;gap:3px;height:18px;}
-  .player__eq span{width:3px;height:8px;background:var(--muted);border-radius:2px;}
-  .player.is-live .player__eq span{background:var(--amber);}
-  .player__art.has-art .player__eq{display:none;}
-  @media (prefers-reduced-motion:no-preference){
-    .player.is-live .player__eq span{animation:eq 1s ease-in-out infinite;}
-    .player__eq span:nth-child(2){animation-delay:.2s;}
-    .player__eq span:nth-child(3){animation-delay:.4s;}
-    .player__eq span:nth-child(4){animation-delay:.6s;}
-    @keyframes eq{0%,100%{height:6px;}50%{height:18px;}}
-  }
-
-  /* ---------- player mute / copy buttons ---------- */
-  .player__mute,.player__copy{background:none;border:1px solid rgba(237,234,227,0.2);color:#edeae3;
-    border-radius:50%;width:34px;height:34px;flex:none;font-size:13px;
-    display:flex;align-items:center;justify-content:center;
-    transition:color .15s ease,border-color .15s ease;}
-  .player__mute:hover,.player__copy:hover{color:var(--amber);border-color:var(--amber);}
-
-  /* ---------- sort control ---------- */
-  .stations__head{display:flex;align-items:baseline;gap:12px;margin-bottom:16px;flex-wrap:wrap;}
-  .sort-wrap{display:flex;align-items:center;gap:8px;margin-left:auto;}
-  .sort-wrap.is-hidden{display:none;}
-  .sort-wrap label{font-family:'IBM Plex Mono',monospace;font-size:10.5px;color:var(--muted);
-    text-transform:uppercase;letter-spacing:.05em;}
-  .sort-wrap select{background:var(--panel);border:1px solid var(--line);color:var(--paper);
-    border-radius:14px;padding:4px 10px;font-size:12px;font-family:'IBM Plex Mono',monospace;cursor:pointer;}
-  .sort-wrap select:focus{outline:1px solid var(--amber);}
-  .sort-wrap select option{background:var(--panel);color:var(--paper);}
-
-  /* ---------- favorites drag-and-drop ---------- */
-  .card--draggable{cursor:grab;}
-  .card--dragging{opacity:.5;}
-  .card__drag{background:none;border:none;color:var(--muted);font-size:14px;flex:none;padding:2px;line-height:1;cursor:grab;}
-  .card__drag:hover{color:var(--amber);}
-
-  /* ---------- mobile: new player buttons + art ---------- */
-  @media (max-width:640px){
-    .player__mute,.player__copy{width:38px;height:38px;}
-    .player__art{width:38px;height:38px;}
-  }
 </style>
 </head>
 <body>
@@ -559,26 +450,11 @@
   </section>
 
   <main class="stations">
-    <div class="onboarding is-hidden" id="onboarding" role="note">
-      <div class="onboarding__body">
-        <p class="onboarding__title">Welcome to Wavelength</p>
-        <p class="onboarding__text">Tap any station card to tune in. Tap the <b>star</b> to save favorites, open <b>Settings</b> for themes, sleep timers and auto-refresh, and use <b>Save</b> to back up your favorites and renames to a file you can restore on any device. Admins can rename stations with the <b>pencil</b> icon. Press <b>/</b> to search, <b>Space</b> to play or pause.</p>
-      </div>
-      <button class="onboarding__close" id="onboardingClose" type="button" aria-label="Dismiss welcome">✕</button>
-    </div>
     <div class="stations__head">
       <h2 id="stationsTitle">Popular around the world</h2>
       <span class="stations__count" id="stationsCount"></span>
-      <div class="sort-wrap is-hidden" id="sortWrap">
-        <label for="sortSelect">Sort</label>
-        <select id="sortSelect" aria-label="Sort stations"></select>
-      </div>
     </div>
     <div class="featured is-hidden" id="featuredWrap"></div>
-    <div class="recently is-hidden" id="recentlyWrap">
-      <div class="recently__label">Recently played</div>
-      <div class="recently__grid" id="recentlyGrid"></div>
-    </div>
     <div class="grid" id="grid"></div>
     <div class="load-more-wrap is-hidden" id="loadMoreWrap">
       <button class="load-more-btn" id="loadMoreBtn" type="button">Load more stations</button>
@@ -592,22 +468,23 @@
 </div>
 
 <div class="player" id="player">
+  <div class="player__art" id="playerArt" aria-hidden="true">
+    <span class="player__art-fallback"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="16" r="1.6" fill="currentColor" stroke="none"/><path d="M6 16a6 6 0 0 1 12 0M3 16a9 9 0 0 1 18 0" stroke-linecap="round"/></svg></span>
+    <img id="playerArtImg" alt="" style="display:none;" />
+  </div>
   <button class="player__scan" id="scanBtn" title="Scan for a random station">⟲</button>
   <button class="player__play" id="playBtn" aria-label="Play">▶</button>
-  <div class="player__art" id="playerArt" aria-hidden="true">
-    <img id="playerArtImg" alt="" />
-    <div class="player__eq" aria-hidden="true"><span></span><span></span><span></span><span></span></div>
-  </div>
   <div class="player__info">
     <div class="player__name" id="nowName">Nothing tuned in yet</div>
     <div class="player__meta" id="nowMeta">Pick a station below to start listening</div>
   </div>
-  <div class="player__onair" id="onair"><span></span>On air</div>
+  <div class="player__onair" id="onair"><span class="player__onair-eq"><i></i><i></i><i></i></span>On air</div>
   <button class="player__fav" id="favBtn" aria-label="Save favorite" disabled>☆</button>
   <button class="sleep-chip" id="sleepChip" type="button" aria-label="Sleep timer" title="Tap to cancel sleep timer" hidden>⏱ <span id="sleepChipText"></span></button>
-  <button class="player__retry" id="retryBtn" type="button" aria-label="Retry stream" title="Reconnect this stream">↻ Retry</button>
-  <button class="player__mute" id="muteBtn" type="button" aria-label="Mute" aria-pressed="false">🔊</button>
-  <button class="player__copy" id="copyBtn" type="button" aria-label="Copy stream link" title="Copy this station's stream link">⧉</button>
+  <button class="player__mute" id="muteBtn" type="button" aria-pressed="false" aria-label="Mute audio" title="Mute audio">
+    <svg id="muteIconOn" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><polygon points="4 9 8 9 12 5 12 19 8 15 4 15 4 9" fill="currentColor" stroke="none"/><path d="M16.3 8.7a5 5 0 0 1 0 6.6"/><path d="M18.8 6.2a8.5 8.5 0 0 1 0 11.6"/></svg>
+    <svg id="muteIconOff" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" style="display:none;"><polygon points="4 9 8 9 12 5 12 19 8 15 4 15 4 9" fill="currentColor" stroke="none"/><line x1="16.5" y1="9" x2="21.5" y2="14"/><line x1="21.5" y1="9" x2="16.5" y2="14"/></svg>
+  </button>
   <input class="player__volume" id="volume" type="range" min="0" max="100" value="80" aria-label="Volume" />
 </div>
 
@@ -680,7 +557,7 @@
         <span class="update-btn__icon">⤒</span>Load
       </button>
     </div>
-    <p class="update-hint">Backs up your favorites, renames, recently played and preferences to a file you can restore on any device. For your safety, your password is never written to the file.</p>
+    <p class="update-hint">Backs up your account, favorites, renames and preferences to a file. The file includes your sign-in, so keep it private.</p>
     <input type="file" id="loadFileInput" accept="application/json,.json" style="display:none;" />
   </div>
   <div class="settings-section">
@@ -760,39 +637,7 @@
   </div>
 </div>
 
-<div class="sr-only" id="liveRegion" aria-live="polite" aria-atomic="true"></div>
 <div class="toast" id="toast"></div>
-
-<div class="rename-overlay" id="renameOverlay" role="dialog" aria-modal="true" aria-label="Rename station">
-  <div class="rename-modal">
-    <div class="settings-panel__head">
-      <h3 id="renameTitle">Rename station</h3>
-      <button class="settings-panel__close" id="renameClose" type="button" aria-label="Cancel rename">✕</button>
-    </div>
-    <p class="rename-modal__original" id="renameOriginal"></p>
-    <input type="text" id="renameInput" maxlength="60" autocomplete="off" />
-    <div class="rename-modal__error" id="renameError"></div>
-    <p class="rename-modal__hint">Leave blank to reset to the original name. Names are saved on this device only.</p>
-    <div class="rename-modal__actions">
-      <button type="button" id="renameCancelBtn">Cancel</button>
-      <button type="button" id="renameSubmitBtn" class="rename-submit">Save</button>
-    </div>
-  </div>
-</div>
-
-<div class="rename-overlay" id="confirmOverlay" role="dialog" aria-modal="true" aria-label="Confirm">
-  <div class="rename-modal">
-    <div class="settings-panel__head">
-      <h3 id="confirmTitle">Are you sure?</h3>
-      <button class="settings-panel__close" id="confirmClose" type="button" aria-label="Cancel">✕</button>
-    </div>
-    <p class="confirm-modal__text" id="confirmText"></p>
-    <div class="rename-modal__actions">
-      <button type="button" id="confirmCancelBtn">Cancel</button>
-      <button type="button" id="confirmOkBtn" class="rename-submit">Confirm</button>
-    </div>
-  </div>
-</div>
 <audio id="audio" preload="none"></audio>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/hls.js/1.5.17/hls.min.js"></script>
@@ -808,7 +653,7 @@
   ];
 
   var CONTINENTS = {
-    "Europe": ["Albania","Andorra","Austria","Belarus","Belgium","Bosnia and Herzegovina","Bulgaria","Croatia","Cyprus","Czechia","Czech Republic","Denmark","Estonia","Finland","France","Germany","Greece","Hungary","Iceland","Ireland","Italy","Kosovo","Latvia","Liechtenstein","Lithuania","Luxembourg","Malta","Moldova","Monaco","Montenegro","Netherlands","North Macedonia","Norway","Poland","Portugal","Romania","Russia","Russian Federation","San Marino","Serbia","Slovakia","Slovenia","Spain","Sweden","Switzerland","Ukraine","United Kingdom"],
+    "Europe": ["Albania","Andorra","Austria","Belarus","Belgium","Bosnia and Herzegovina","Bulgaria","Croatia","Cyprus","Czechia","Czech Republic","Denmark","Estonia","Finland","France","Germany","Greece","Hungary","Iceland","Ireland","Italy","Kosovo","Latvia","Liechtenstein","Lithuania","Luxembourg","Malta","Moldova","Monaco","Montenegro","Netherlands","The Netherlands","North Macedonia","Norway","Poland","Portugal","Romania","Russia","Russian Federation","San Marino","Serbia","Slovakia","Slovenia","Spain","Sweden","Switzerland","Ukraine","United Kingdom"],
     "Asia": ["Afghanistan","Armenia","Azerbaijan","Bangladesh","Bhutan","Brunei","Cambodia","China","Georgia","Hong Kong","India","Indonesia","Japan","Kazakhstan","Kyrgyzstan","Laos","Macau","Malaysia","Maldives","Mongolia","Myanmar","Nepal","North Korea","Pakistan","Philippines","Singapore","South Korea","Sri Lanka","Taiwan","Tajikistan","Thailand","Timor-Leste","Turkmenistan","Uzbekistan","Vietnam"],
     "Africa": ["Algeria","Angola","Benin","Botswana","Burkina Faso","Burundi","Cameroon","Cape Verde","Chad","Congo","Democratic Republic of the Congo","Djibouti","Egypt","Equatorial Guinea","Eritrea","Eswatini","Ethiopia","Gabon","Gambia","Ghana","Guinea","Ivory Coast","Kenya","Lesotho","Liberia","Libya","Madagascar","Malawi","Mali","Mauritania","Mauritius","Morocco","Mozambique","Namibia","Niger","Nigeria","Rwanda","Senegal","Sierra Leone","Somalia","South Africa","South Sudan","Sudan","Tanzania","Togo","Tunisia","Uganda","Zambia","Zimbabwe"],
     "Middle East": ["Bahrain","Iran","Iraq","Israel","Jordan","Kuwait","Lebanon","Oman","Palestine","Qatar","Saudi Arabia","Syria","Turkey","United Arab Emirates","Yemen"],
@@ -816,7 +661,7 @@
     "South America": ["Argentina","Bolivia","Brazil","Chile","Colombia","Ecuador","Guyana","Paraguay","Peru","Suriname","Uruguay","Venezuela"],
     "Oceania": ["Australia","New Zealand","Fiji","Papua New Guinea","Samoa","Tonga","Vanuatu","Solomon Islands","New Caledonia","French Polynesia"]
   };
-  var TABS = ["Popular","Favorites","Europe","Asia","Africa","Middle East","North America","South America","Oceania"];
+  var TABS = ["Popular","Recently Played","Favorites","Europe","Asia","Africa","Middle East","North America","South America","Oceania"];
 
   var el = {
     dialTrack: document.getElementById("dialTrack"),
@@ -832,10 +677,14 @@
     clockTime: document.getElementById("clockTime"),
     clockOffset: document.getElementById("clockOffset"),
     player: document.getElementById("player"),
+    playerArtImg: document.getElementById("playerArtImg"),
     playBtn: document.getElementById("playBtn"),
     scanBtn: document.getElementById("scanBtn"),
     favBtn: document.getElementById("favBtn"),
     volume: document.getElementById("volume"),
+    muteBtn: document.getElementById("muteBtn"),
+    muteIconOn: document.getElementById("muteIconOn"),
+    muteIconOff: document.getElementById("muteIconOff"),
     nowName: document.getElementById("nowName"),
     nowMeta: document.getElementById("nowMeta"),
     audio: document.getElementById("audio"),
@@ -893,32 +742,7 @@
     accountPasswordInput: document.getElementById("accountPasswordInput"),
     accountError: document.getElementById("accountError"),
     accountSubmitBtn: document.getElementById("accountSubmitBtn"),
-    accountModeToggle: document.getElementById("accountModeToggle"),
-    liveRegion: document.getElementById("liveRegion"),
-    onboarding: document.getElementById("onboarding"),
-    onboardingClose: document.getElementById("onboardingClose"),
-    recentlyWrap: document.getElementById("recentlyWrap"),
-    recentlyGrid: document.getElementById("recentlyGrid"),
-    retryBtn: document.getElementById("retryBtn"),
-    renameOverlay: document.getElementById("renameOverlay"),
-    renameClose: document.getElementById("renameClose"),
-    renameInput: document.getElementById("renameInput"),
-    renameError: document.getElementById("renameError"),
-    renameOriginal: document.getElementById("renameOriginal"),
-    renameCancelBtn: document.getElementById("renameCancelBtn"),
-    renameSubmitBtn: document.getElementById("renameSubmitBtn"),
-    confirmOverlay: document.getElementById("confirmOverlay"),
-    confirmClose: document.getElementById("confirmClose"),
-    confirmText: document.getElementById("confirmText"),
-    confirmTitle: document.getElementById("confirmTitle"),
-    confirmCancelBtn: document.getElementById("confirmCancelBtn"),
-    confirmOkBtn: document.getElementById("confirmOkBtn"),
-    playerArt: document.getElementById("playerArt"),
-    playerArtImg: document.getElementById("playerArtImg"),
-    muteBtn: document.getElementById("muteBtn"),
-    copyBtn: document.getElementById("copyBtn"),
-    sortWrap: document.getElementById("sortWrap"),
-    sortSelect: document.getElementById("sortSelect")
+    accountModeToggle: document.getElementById("accountModeToggle")
   };
 
   var PAGE_SIZE = 40;
@@ -931,12 +755,14 @@
     genresLoaded: false,
     activeGenre: null,
     favorites: [],
+    recentlyPlayed: [],
     current: null,
     isPlaying: false,
     lastNonSearchTab: "Popular",
     toastTimer: null,
     view: "popular",
     viewParam: null,
+    viewCode: null,
     offset: 0,
     searchLimit: PAGE_SIZE,
     renderedUUIDs: new Set(),
@@ -948,20 +774,7 @@
     nameOverrides: {},
     userAccount: null,
     userSignedIn: false,
-    accountMode: "create",
-    recentlyPlayed: [],
-    lastStationUuid: null,
-    renameStation: null,
-    renameNameEl: null,
-    retryAttempt: 0,
-    retryToken: 0,
-    confirmCallback: null,
-    currentStreamUrl: null,
-    muted: false,
-    currentList: [],
-    stationSort: "votes",
-    favSort: "custom",
-    dragSrcIndex: null
+    accountMode: "create"
   };
 
   /* Bumps the active request token. Any in-flight response whose captured
@@ -1004,238 +817,6 @@
 
   /* ---------------- storage ---------------- */
   var STORAGE_KEY = "wavelength.favorites";
-  var RECENTLY_KEY = "wavelength.recentlyPlayed";
-  var LAST_STATION_KEY = "wavelength.lastStation";
-  var ONBOARDING_KEY = "wavelength.onboardingSeen";
-  var RECENTLY_MAX = 8;
-
-  function loadRecentlyPlayed(){
-    try {
-      var raw = window.localStorage.getItem(RECENTLY_KEY);
-      state.recentlyPlayed = raw ? (JSON.parse(raw) || []) : [];
-    } catch(e){ state.recentlyPlayed = []; }
-    return Promise.resolve();
-  }
-  function saveRecentlyPlayed(){
-    try { window.localStorage.setItem(RECENTLY_KEY, JSON.stringify(state.recentlyPlayed)); } catch(e){}
-  }
-  function pushRecentlyPlayed(station){
-    if (!station || !station.stationuuid) return;
-    var uuid = station.stationuuid;
-    var existing = null;
-    state.recentlyPlayed = state.recentlyPlayed.filter(function(s){
-      if (s.stationuuid === uuid){ existing = s; return false; }
-      return true;
-    });
-    /* shallow-copy so later state mutations don't leak into the history */
-    var copy = {};
-    for (var k in station){ if (station.hasOwnProperty(k)) copy[k] = station[k]; }
-    state.recentlyPlayed.unshift(copy);
-    if (state.recentlyPlayed.length > RECENTLY_MAX) state.recentlyPlayed.length = RECENTLY_MAX;
-    saveRecentlyPlayed();
-    renderRecently();
-  }
-  function renderRecently(){
-    var list = state.recentlyPlayed;
-    if (!list.length){ el.recentlyWrap.classList.add("is-hidden"); el.recentlyGrid.innerHTML = ""; return; }
-    el.recentlyWrap.classList.remove("is-hidden");
-    el.recentlyGrid.innerHTML = "";
-    list.forEach(function(station){
-      var card = document.createElement("button");
-      card.type = "button";
-      card.className = "recently__card" + (state.current && state.current.stationuuid === station.stationuuid ? " is-playing" : "");
-      var name = document.createElement("div");
-      name.className = "recently__name";
-      name.textContent = getDisplayName(station);
-      var meta = document.createElement("div");
-      meta.className = "recently__meta";
-      var bits = [];
-      if (station.country) bits.push(station.country);
-      if (station.bitrate) bits.push(station.bitrate + " kbps");
-      meta.textContent = bits.join(" · ");
-      card.appendChild(name);
-      card.appendChild(meta);
-      card.addEventListener("click", function(){ playStation(station); });
-      el.recentlyGrid.appendChild(card);
-    });
-  }
-  function persistLastStation(station){
-    if (!station || !station.stationuuid){ return; }
-    try { window.localStorage.setItem(LAST_STATION_KEY, JSON.stringify({ uuid: station.stationuuid, snapshot: station })); } catch(e){}
-  }
-  function clearLastStation(){ try { window.localStorage.removeItem(LAST_STATION_KEY); } catch(e){} }
-  function loadLastStationSnapshot(){
-    try {
-      var raw = window.localStorage.getItem(LAST_STATION_KEY);
-      if (!raw) return null;
-      var data = JSON.parse(raw);
-      return (data && data.snapshot) ? data.snapshot : null;
-    } catch(e){ return null; }
-  }
-
-  function onboardingSeen(){ try { return window.localStorage.getItem(ONBOARDING_KEY) === "1"; } catch(e){ return false; } }
-  function markOnboardingSeen(){ try { window.localStorage.setItem(ONBOARDING_KEY, "1"); } catch(e){} }
-  function showOnboardingIfNeeded(){
-    if (onboardingSeen()){ el.onboarding.classList.add("is-hidden"); return; }
-    el.onboarding.classList.remove("is-hidden");
-  }
-  function dismissOnboarding(){ markOnboardingSeen(); el.onboarding.classList.add("is-hidden"); }
-
-  /* ---------------- country flag emoji ---------------- */
-  function countryFlag(code){
-    if (!code || code.length !== 2) return "";
-    var cc = code.toUpperCase();
-    var flag = "";
-    for (var i = 0; i < cc.length; i++){ flag += String.fromCodePoint(cc.charCodeAt(i) + 127397); }
-    return flag;
-  }
-
-  /* ---------------- mute ---------------- */
-  var MUTE_KEY = "wavelength.muted";
-  function applyMuted(){
-    el.audio.muted = !!state.muted;
-    el.muteBtn.textContent = state.muted ? "🔇" : "🔊";
-    el.muteBtn.setAttribute("aria-label", state.muted ? "Unmute" : "Mute");
-    el.muteBtn.setAttribute("aria-pressed", state.muted ? "true" : "false");
-  }
-  function toggleMute(){
-    state.muted = !state.muted;
-    applyMuted();
-    try { window.localStorage.setItem(MUTE_KEY, state.muted ? "1" : "0"); } catch(e){}
-    announce(state.muted ? "Muted." : "Unmuted.");
-  }
-  function loadMuteState(){
-    try { state.muted = window.localStorage.getItem(MUTE_KEY) === "1"; } catch(e){ state.muted = false; }
-    applyMuted();
-  }
-
-  /* ---------------- copy / share stream link ---------------- */
-  function copyStationLink(){
-    var url = state.currentStreamUrl || (state.current && (state.current.url_resolved || state.current.url));
-    if (!url){ showToast("No stream link available yet."); return; }
-    var done = function(){ showToast("Stream link copied to clipboard."); };
-    var fail = function(){ showToast("Couldn't copy. Link: " + url); };
-    if (navigator.share){
-      navigator.share({ title: "Wavelength", text: getDisplayName(state.current), url: url }).then(done, function(){ fallbackCopy(url, done, fail); });
-    } else { fallbackCopy(url, done, fail); }
-  }
-  function fallbackCopy(url, done, fail){
-    if (navigator.clipboard && navigator.clipboard.writeText){
-      navigator.clipboard.writeText(url).then(done, fail);
-      return;
-    }
-    try {
-      var ta = document.createElement("textarea"); ta.value = url;
-      ta.setAttribute("readonly", ""); ta.style.position = "absolute"; ta.style.left = "-9999px";
-      document.body.appendChild(ta); ta.select();
-      var ok = document.execCommand("copy"); document.body.removeChild(ta);
-      ok ? done() : fail();
-    } catch(e){ fail(); }
-  }
-
-  /* ---------------- Media Session API ----------------
-     Hands play/pause/stop to the OS media controls (lock screen, headset
-     buttons, media keys). Live radio has no seek, so we don't wire seek. */
-  function setupMediaSession(){
-    if (!("mediaSession" in navigator)) return;
-    try {
-      navigator.mediaSession.setActionHandler("play", function(){ togglePlayback(); });
-      navigator.mediaSession.setActionHandler("pause", function(){ togglePlayback(); });
-      navigator.mediaSession.setActionHandler("stop", function(){
-        if (state.isPlaying){ el.audio.pause(); state.isPlaying = false; el.playBtn.textContent = "▶"; el.player.classList.remove("is-live"); setMediaPlaybackState(); }
-      });
-    } catch(e){ /* some action handlers unsupported — fine */ }
-  }
-  function setMediaPlaybackState(){
-    try { if ("mediaSession" in navigator) navigator.mediaSession.playbackState = state.isPlaying ? "playing" : "paused"; } catch(e){}
-  }
-  function updateMediaSessionMetadata(station){
-    if (!("mediaSession" in navigator) || !station) return;
-    var artwork = [];
-    if (station.favicon) artwork.push({ src: station.favicon, sizes: "256x256 512x512", type: "image/png" });
-    try {
-      navigator.mediaSession.metadata = new MediaMetadata({
-        title: getDisplayName(station),
-        artist: station.country || "Wavelength Radio",
-        album: "Wavelength",
-        artwork: artwork
-      });
-    } catch(e){}
-    setMediaPlaybackState();
-  }
-
-  /* ---------------- buffering state ---------------- */
-  function setBufferingUI(){
-    if (state.current && state.isPlaying) setNowPlayingUI(state.current, "Buffering…");
-  }
-  function clearBufferingUI(){
-    if (state.current && state.isPlaying) setNowPlayingUI(state.current);
-  }
-
-  /* ---------------- active tab persistence ---------------- */
-  var ACTIVE_TAB_KEY = "wavelength.activeTab";
-  function loadActiveTab(){
-    try { var t = window.localStorage.getItem(ACTIVE_TAB_KEY); if (t && TABS.indexOf(t) !== -1) return t; } catch(e){}
-    return "Popular";
-  }
-  function persistActiveTab(tab){ try { window.localStorage.setItem(ACTIVE_TAB_KEY, tab); } catch(e){} }
-
-  /* ---------------- station-list sort ---------------- */
-  var STATION_SORT_KEY = "wavelength.stationSort";
-  function persistStationSort(){ try { window.localStorage.setItem(STATION_SORT_KEY, state.stationSort); } catch(e){} }
-  function loadStationSort(){ try { var s = window.localStorage.getItem(STATION_SORT_KEY); if (s) state.stationSort = s; } catch(e){} }
-  function sortStationList(list){
-    var out = list.slice();
-    if (state.stationSort === "name") out.sort(function(a,b){ return getDisplayName(a).localeCompare(getDisplayName(b)); });
-    else if (state.stationSort === "bitrate") out.sort(function(a,b){ return (b.bitrate||0) - (a.bitrate||0); });
-    else if (state.stationSort === "country") out.sort(function(a,b){ return (a.country||"").localeCompare(b.country||"") || getDisplayName(a).localeCompare(getDisplayName(b)); });
-    return out;
-  }
-  function rerenderSorted(){
-    var list = sortStationList(state.currentList.slice());
-    el.grid.innerHTML = "";
-    state.renderedUUIDs = new Set();
-    list.forEach(function(s){
-      if (!s || !s.stationuuid || state.renderedUUIDs.has(s.stationuuid)) return;
-      state.renderedUUIDs.add(s.stationuuid);
-      el.grid.appendChild(makeCard(s));
-    });
-    updateCountText();
-    maybeShowEmpty();
-  }
-
-  /* ---------------- favorites sort + reorder ---------------- */
-  var FAV_SORT_KEY = "wavelength.favSort";
-  function persistFavSort(){ try { window.localStorage.setItem(FAV_SORT_KEY, state.favSort); } catch(e){} }
-  function loadFavSort(){ try { var s = window.localStorage.getItem(FAV_SORT_KEY); if (s) state.favSort = s; } catch(e){} }
-  function sortedFavorites(){
-    var list = state.favorites.slice();
-    if (state.favSort === "name") list.sort(function(a,b){ return getDisplayName(a).localeCompare(getDisplayName(b)); });
-    else if (state.favSort === "country") list.sort(function(a,b){ return (a.country||"").localeCompare(b.country||"") || getDisplayName(a).localeCompare(getDisplayName(b)); });
-    else if (state.favSort === "recent") list.reverse();
-    return list; /* "custom" preserves array order, edited via drag-and-drop */
-  }
-  function renderFavoritesWithSort(){
-    resetGrid();
-    appendCards(sortedFavorites());
-    toggleLoadMore(false);
-    maybeShowEmpty();
-  }
-  function setSortOptionsForView(){
-    var sel = el.sortSelect;
-    var opts;
-    if (state.view === "favorites") opts = [["custom","Custom order"],["name","Name (A–Z)"],["country","Country"],["recent","Recently added"]];
-    else if (state.view === "search") opts = [];
-    else opts = [["votes","Top voted"],["name","Name (A–Z)"],["bitrate","Bitrate (high)"],["country","Country"]];
-    if (!opts.length){ el.sortWrap.classList.add("is-hidden"); return; }
-    el.sortWrap.classList.remove("is-hidden");
-    var cur = (state.view === "favorites") ? state.favSort : state.stationSort;
-    sel.innerHTML = "";
-    opts.forEach(function(o){ var op = document.createElement("option"); op.value = o[0]; op.textContent = o[1]; sel.appendChild(op); });
-    sel.value = opts.some(function(o){ return o[0] === cur; }) ? cur : opts[0][0];
-    if (state.view === "favorites") state.favSort = sel.value; else state.stationSort = sel.value;
-  }
-
   function loadFavorites(){
     try {
       var raw = window.localStorage.getItem(STORAGE_KEY);
@@ -1247,6 +828,31 @@
     try {
       window.localStorage.setItem(STORAGE_KEY, JSON.stringify(state.favorites));
     } catch(e){ /* storage full or unavailable — favorites just won't persist */ }
+  }
+
+  /* Recently played: most-recent-first, deduped by station, capped so the
+     list (and localStorage) can't grow without bound. */
+  var RECENTLY_PLAYED_KEY = "wavelength.recentlyPlayed";
+  var RECENTLY_PLAYED_LIMIT = 40;
+  function loadRecentlyPlayed(){
+    try {
+      var raw = window.localStorage.getItem(RECENTLY_PLAYED_KEY);
+      if (raw) state.recentlyPlayed = JSON.parse(raw) || [];
+    } catch(e){ /* localStorage unavailable or nothing played yet */ }
+    return Promise.resolve();
+  }
+  function saveRecentlyPlayed(){
+    try {
+      window.localStorage.setItem(RECENTLY_PLAYED_KEY, JSON.stringify(state.recentlyPlayed));
+    } catch(e){ /* storage full or unavailable — history just won't persist */ }
+  }
+  function recordRecentlyPlayed(station){
+    if (!station || !station.stationuuid) return;
+    state.recentlyPlayed = state.recentlyPlayed.filter(function(s){ return s.stationuuid !== station.stationuuid; });
+    state.recentlyPlayed.unshift(station);
+    if (state.recentlyPlayed.length > RECENTLY_PLAYED_LIMIT) state.recentlyPlayed.length = RECENTLY_PLAYED_LIMIT;
+    saveRecentlyPlayed();
+    if (state.activeTab === "Recently Played" && !el.search.value.trim()) renderGrid(state.recentlyPlayed);
   }
   /* ---------------- admin: sign-in + station renaming ----------------
      No server exists here, so "verification" just means these two values
@@ -1434,121 +1040,37 @@
     showToast("Signed out of admin.");
   }
 
-  function openRenameModal(station, nameEl){
-    state.renameStation = station;
-    state.renameNameEl = nameEl;
+  function renameStationPrompt(station, nameEl){
     var current = getDisplayName(station);
-    el.renameOriginal.textContent = "Original: " + (station.name || "Unnamed station");
-    el.renameInput.value = current;
-    el.renameError.textContent = "";
-    el.renameOverlay.classList.add("is-open");
-    setTimeout(function(){ el.renameInput.focus(); el.renameInput.select(); }, 30);
-  }
-  function closeRenameModal(){
-    el.renameOverlay.classList.remove("is-open");
-    state.renameStation = null;
-    state.renameNameEl = null;
-  }
-  function normalizeName(s){ return (s || "").trim().replace(/\s+/g, " ").toLowerCase(); }
-  function submitRename(){
-    var station = state.renameStation;
-    var nameEl = state.renameNameEl;
-    if (!station || !station.stationuuid){ closeRenameModal(); return; }
-    var next = el.renameInput.value;
-    var trimmed = next.trim();
-    el.renameError.textContent = "";
-    if (trimmed.length > 60){ el.renameError.textContent = "Name is too long (60 characters max)."; return; }
-    var normalized = normalizeName(trimmed);
-    /* duplicate detection: block if another station already uses this custom name */
-    if (normalized){
-      var clash = null;
-      for (var uuid in state.nameOverrides){
-        if (uuid === station.stationuuid) continue;
-        if (normalizeName(state.nameOverrides[uuid]) === normalized){ clash = uuid; break; }
-      }
-      if (clash){ el.renameError.textContent = "Another station already uses that name. Pick something different."; return; }
-    }
+    var next = window.prompt("New name for this station (leave blank to reset to the original name):", current);
+    if (next === null) return;
     setStationNameOverride(station, next);
     var updated = getDisplayName(station);
-    if (nameEl) nameEl.textContent = updated;
+    nameEl.textContent = updated;
     if (state.current && state.current.stationuuid === station.stationuuid){
       setNowPlayingUI(station, state.isPlaying ? null : el.nowMeta.textContent);
     }
-    showToast(trimmed ? "Station renamed to \u201c" + updated + "\u201d." : "Station name reset.");
-    closeRenameModal();
+    showToast(next.trim() ? "Station renamed to \u201c" + updated + "\u201d." : "Station name reset.");
   }
-  /* keep a thin wrapper so existing call sites stay valid */
-  function renameStationPrompt(station, nameEl){ openRenameModal(station, nameEl); }
 
   function isFavorite(uuid){
     return state.favorites.some(function(s){ return s.stationuuid === uuid; });
   }
-  function removeFavorite(station){
-    state.favorites = state.favorites.filter(function(s){ return s.stationuuid !== station.stationuuid; });
-    saveFavorites();
-    updateFavButton();
-    refreshStarStates(station.stationuuid, false);
-    if (state.activeTab === "Favorites") renderFavoritesWithSort();
-  }
   function toggleFavorite(station){
     if (isFavorite(station.stationuuid)){
-      var name = getDisplayName(station);
-      confirmAction("Remove \u201c" + name + "\u201d from your favorites?", {
-        title: "Remove favorite?",
-        okLabel: "Remove",
-        onConfirm: function(){ removeFavorite(station); showToast("\u201c" + name + "\u201d removed from favorites."); }
-      });
-      return;
+      state.favorites = state.favorites.filter(function(s){ return s.stationuuid !== station.stationuuid; });
+    } else {
+      state.favorites.push(station);
     }
-    state.favorites.push(station);
     saveFavorites();
     updateFavButton();
-    refreshStarStates(station.stationuuid, true);
-    if (state.activeTab === "Favorites") renderFavoritesWithSort();
-  }
-  function refreshStarStates(uuid, fav){
-    Array.prototype.forEach.call(el.grid.querySelectorAll(".card__star"), function(star){
-      var card = star.closest(".card");
-      if (!card) return;
-      if (card.getAttribute("data-uuid") === uuid){
-        star.classList.toggle("is-fav", fav);
-        star.textContent = fav ? "\u2605" : "\u2606";
-        star.setAttribute("aria-label", fav ? "Remove from favorites" : "Add to favorites");
-        star.setAttribute("aria-pressed", fav ? "true" : "false");
-      }
-    });
+    if (state.activeTab === "Favorites") renderGrid(state.favorites);
   }
 
   /* ---------------- toast ---------------- */
-  function announce(msg){
-    if (el.liveRegion) el.liveRegion.textContent = "";
-    /* microtask delay so screen readers register the change */
-    setTimeout(function(){ if (el.liveRegion) el.liveRegion.textContent = msg; }, 30);
-  }
-  function confirmAction(message, opts){
-    opts = opts || {};
-    el.confirmTitle.textContent = opts.title || "Are you sure?";
-    el.confirmText.textContent = message;
-    el.confirmOkBtn.textContent = opts.okLabel || "Confirm";
-    el.confirmCancelBtn.textContent = opts.cancelLabel || "Cancel";
-    state.confirmCallback = typeof opts.onConfirm === "function" ? opts.onConfirm : null;
-    el.confirmOverlay.classList.add("is-open");
-    setTimeout(function(){ el.confirmCancelBtn.focus(); }, 30);
-  }
-  function closeConfirm(){
-    el.confirmOverlay.classList.remove("is-open");
-    state.confirmCallback = null;
-  }
-  function runConfirm(){
-    var cb = state.confirmCallback;
-    closeConfirm();
-    if (typeof cb === "function") cb();
-  }
-
   function showToast(msg){
     el.toast.textContent = msg;
     el.toast.classList.add("is-visible");
-    announce(msg);
     if (state.toastTimer) clearTimeout(state.toastTimer);
     state.toastTimer = setTimeout(function(){ el.toast.classList.remove("is-visible"); }, 3500);
   }
@@ -1702,6 +1224,21 @@
     persistVolume(v);
   }
 
+  function updateMuteUI(){
+    var muted = el.audio.muted;
+    el.muteBtn.classList.toggle("is-muted", muted);
+    el.muteBtn.setAttribute("aria-pressed", muted ? "true" : "false");
+    el.muteBtn.setAttribute("aria-label", muted ? "Unmute audio" : "Mute audio");
+    el.muteBtn.title = muted ? "Unmute audio" : "Mute audio";
+    el.muteIconOn.style.display = muted ? "none" : "";
+    el.muteIconOff.style.display = muted ? "" : "none";
+  }
+
+  function toggleMute(){
+    el.audio.muted = !el.audio.muted;
+    updateMuteUI();
+  }
+
   /* ---------------- station updates / refresh ---------------- */
   var AUTO_UPDATE_KEY = "wavelength.autoUpdate";
   var AUTO_UPDATE_INTERVAL_MS = 5 * 60 * 1000;
@@ -1759,17 +1296,13 @@
   var VOLUME_STORAGE_KEY = "wavelength.volume";
 
   function buildBackup(){
-    /* Settings-only export: favorites, renames, recently played, last
-       station and preferences are included, but the account password is
-       intentionally NOT written to the file. Sign-in state stays local
-       to this browser. */
     var data = {
       version: BACKUP_VERSION,
       savedAt: new Date().toISOString(),
+      account: state.userAccount ? { email: state.userAccount.email, password: state.userAccount.password, createdAt: state.userAccount.createdAt } : null,
+      signedIn: !!state.userSignedIn,
       favorites: state.favorites || [],
       nameOverrides: state.nameOverrides || {},
-      recentlyPlayed: state.recentlyPlayed || [],
-      lastStation: (function(){ var s = loadLastStationSnapshot(); return s ? { uuid: s.stationuuid, snapshot: s } : null; })(),
       preferences: {
         theme: "system",
         clockOffset: "local",
@@ -1798,58 +1331,33 @@
     showToast("Backup saved to your downloads.");
   }
 
-  function isPlainObject(v){ return v && typeof v === "object" && !Array.isArray(v); }
-  function str(v){ return typeof v === "string" ? v : null; }
-  function num(v, lo, hi){ var n = Math.round(Number(v)); if (!isFinite(n)) return lo; return Math.max(lo, Math.min(hi, n)); }
-
   function applyBackup(data){
-    if (!isPlainObject(data)) throw new Error("Not a valid backup file — expected a Wavelength backup.");
-    if (data.version !== BACKUP_VERSION) throw new Error("This backup version isn't supported (expected v" + BACKUP_VERSION + ").");
+    if (!data || typeof data !== "object") throw new Error("Not a valid backup file.");
+    if (data.version !== BACKUP_VERSION) throw new Error("This backup version isn't supported.");
 
-    var prefs = isPlainObject(data.preferences) ? data.preferences : {};
+    var prefs = data.preferences || {};
     var theme = (prefs.theme === "light" || prefs.theme === "system") ? prefs.theme : "dark";
-    var clockOffset = str(prefs.clockOffset) || "local";
+    var clockOffset = typeof prefs.clockOffset === "string" ? prefs.clockOffset : "local";
     var autoUpdate = !!prefs.autoUpdate;
-    var sleepMinutes = num(prefs.sleepMinutes, 0, 60);
-    var volume = num(prefs.volume, 0, 100);
+    var sleepMinutes = Math.max(0, Math.min(60, Math.round(Number(prefs.sleepMinutes)) || 0));
+    var volume = Math.max(0, Math.min(100, Math.round(Number(prefs.volume)) || 0));
 
     var favorites = Array.isArray(data.favorites) ? data.favorites.filter(function(s){
-      return s && typeof s === "object" && s.stationuuid;
-    }).map(function(s){ return s; }) : [];
-    var overrides = isPlainObject(data.nameOverrides) ? data.nameOverrides : {};
-    var recently = Array.isArray(data.recentlyPlayed) ? data.recentlyPlayed.filter(function(s){
-      return s && typeof s === "object" && s.stationuuid;
+      return s && s.stationuuid;
     }) : [];
-    if (recently.length > RECENTLY_MAX) recently.length = RECENTLY_MAX;
+    var overrides = (data.nameOverrides && typeof data.nameOverrides === "object") ? data.nameOverrides : {};
+    var acc = (data.account && typeof data.account === "object" && data.account.email && data.account.password)
+      ? { email: String(data.account.email), password: String(data.account.password), createdAt: data.account.createdAt || null }
+      : null;
+    var signedIn = !!data.signedIn && !!acc;
 
-    /* Backward compatibility: older backups included an account with a
-       password. We accept it so users don't lose data, but we never
-       re-export it (buildBackup omits it). */
-    /* Preserve the existing local account unless the backup carries an
-       explicit account (older backups did). Settings-only backups omit it
-       on purpose, so we must not wipe the user's sign-in. */
-    var acc = null, signedIn = false;
-    if (isPlainObject(data.account) && str(data.account.email) && str(data.account.password)){
-      acc = { email: String(data.account.email), password: String(data.account.password), createdAt: str(data.account.createdAt) || null };
-      signedIn = !!data.signedIn;
-    } else {
-      acc = state.userAccount || null;
-      signedIn = !!state.userSignedIn && !!acc;
-    }
-
+    /* Write to localStorage so it persists after restore. Admin state is
+       deliberately not touched here. */
     try {
       window.localStorage.setItem(STORAGE_KEY, JSON.stringify(favorites));
       window.localStorage.setItem(NAME_OVERRIDES_KEY, JSON.stringify(overrides));
-      window.localStorage.setItem(RECENTLY_KEY, JSON.stringify(recently));
-      if (acc){ window.localStorage.setItem(ACCOUNT_STORAGE_KEY, JSON.stringify(acc)); window.localStorage.setItem(ACCOUNT_SIGNEDIN_KEY, signedIn ? "1" : "0"); }
-      /* no account anywhere — leave any existing local account untouched */
-      var ls = null;
-      if (data.lastStation && isPlainObject(data.lastStation)){
-        if (isPlainObject(data.lastStation.snapshot) && data.lastStation.snapshot.stationuuid) ls = { uuid: str(data.lastStation.uuid) || data.lastStation.snapshot.stationuuid, snapshot: data.lastStation.snapshot };
-        else if (data.lastStation.stationuuid) ls = { uuid: data.lastStation.stationuuid, snapshot: data.lastStation };
-      }
-      if (ls) window.localStorage.setItem(LAST_STATION_KEY, JSON.stringify(ls));
-      else window.localStorage.removeItem(LAST_STATION_KEY);
+      window.localStorage.setItem(ACCOUNT_STORAGE_KEY, acc ? JSON.stringify(acc) : "");
+      window.localStorage.setItem(ACCOUNT_SIGNEDIN_KEY, signedIn ? "1" : "0");
       window.localStorage.setItem(THEME_STORAGE_KEY, theme);
       window.localStorage.setItem(CLOCK_STORAGE_KEY, clockOffset);
       window.localStorage.setItem(AUTO_UPDATE_KEY, autoUpdate ? "1" : "0");
@@ -1857,9 +1365,9 @@
       window.localStorage.setItem(VOLUME_STORAGE_KEY, String(volume));
     } catch(e){ /* storage unavailable — in-memory restore still applies below */ }
 
+    /* Apply to in-memory state and UI. Playback is left untouched. */
     state.favorites = favorites;
     state.nameOverrides = overrides;
-    state.recentlyPlayed = recently;
     state.userAccount = acc;
     state.userSignedIn = signedIn;
     applyTheme(theme);
@@ -1872,12 +1380,11 @@
     }
     setVolume(volume);
     refreshAccountUI();
-    renderRecently();
     if (el.search) el.search.value = "";
     if (state.activeTab === "Favorites") renderGrid(state.favorites);
     else refreshCurrentView(true);
     tickClock();
-    showToast("Backup restored." + (signedIn && acc ? " You're signed in as " + acc.email + "." : ""));
+    showToast("Backup restored." + (signedIn ? " You're signed in as " + acc.email + "." : ""));
   }
 
   function restoreFromFile(file){
@@ -1886,7 +1393,6 @@
     reader.onload = function(){
       try {
         var data = JSON.parse(reader.result);
-        if (!data || typeof data !== "object" || Array.isArray(data)) throw new Error("Not a valid backup file.");
         applyBackup(data);
       } catch(err){
         showToast(err && err.message ? err.message : "Couldn't read that backup file.");
@@ -2029,10 +1535,26 @@
       btn.addEventListener("click", function(){
         Array.prototype.forEach.call(el.countryRow.children, function(p){ p.classList.remove("is-active"); });
         btn.classList.add("is-active");
-        loadCountry(c.name);
+        loadCountry(c.name, true, c.countrycode || null);
       });
       el.countryRow.appendChild(btn);
     });
+  }
+
+  /* Pins a single guaranteed pill for a country whose station data is
+     split across multiple free-text name variants in the directory
+     (e.g. "Netherlands" vs "The Netherlands"). Sums their counts from
+     the full country list (not just the top-30 slice already matched
+     by name) and queries by ISO country code, which catches every
+     variant regardless of which name a given station used. */
+  function pinCountryByCode(matches, allCountries, label, code, nameRegex){
+    var total = 0;
+    allCountries.forEach(function(c){
+      if (c.name && nameRegex.test(c.name)) total += (c.stationcount || 0);
+    });
+    var rest = matches.filter(function(c){ return !nameRegex.test(c.name); });
+    if (total > 0) rest.unshift({ name: label, stationcount: total, countrycode: code });
+    return rest.slice(0, 30);
   }
 
   function renderGenrePills(list){
@@ -2097,11 +1619,9 @@
   }
 
   function makeCard(station){
-    var card = document.createElement("div");
+    var card = document.createElement("button");
     card.className = "card" + (state.current && state.current.stationuuid === station.stationuuid ? " is-playing" : "");
-    card.setAttribute("role", "button");
-    card.setAttribute("tabindex", "0");
-    card.setAttribute("aria-label", getDisplayName(station));
+    card.type = "button";
 
     var icon = document.createElement("div");
     icon.className = "card__icon";
@@ -2113,8 +1633,6 @@
       var img = document.createElement("img");
       img.src = station.favicon;
       img.alt = "";
-      img.loading = "lazy";
-      img.decoding = "async";
       img.onerror = function(){ img.style.display = "none"; };
       icon.appendChild(img);
     }
@@ -2139,7 +1657,7 @@
         var countryChip = document.createElement("button");
         countryChip.type = "button";
         countryChip.className = "card__tag card__tag--country";
-        countryChip.textContent = (station.countrycode ? countryFlag(station.countrycode) + " " : "") + station.country;
+        countryChip.textContent = station.country;
         countryChip.setAttribute("data-role", "country");
         countryChip.setAttribute("data-country", station.country);
         tagRow.appendChild(countryChip);
@@ -2166,15 +1684,10 @@
     rename.setAttribute("aria-label", "Rename station");
     rename.title = "Rename station";
 
-    var fav = isFavorite(station.stationuuid);
-    var star = document.createElement("button");
-    star.type = "button";
-    star.className = "card__star" + (fav ? " is-fav" : "");
-    star.textContent = fav ? "★" : "☆";
+    var star = document.createElement("span");
+    star.className = "card__star" + (isFavorite(station.stationuuid) ? " is-fav" : "");
+    star.textContent = isFavorite(station.stationuuid) ? "★" : "☆";
     star.setAttribute("data-role", "star");
-    star.setAttribute("aria-label", fav ? "Remove from favorites" : "Add to favorites");
-    star.setAttribute("aria-pressed", fav ? "true" : "false");
-    card.setAttribute("data-uuid", station.stationuuid);
 
     card.appendChild(icon);
     card.appendChild(body);
@@ -2186,12 +1699,8 @@
       if (role === "star"){
         e.stopPropagation();
         toggleFavorite(station);
-        /* star state is refreshed by refreshStarStates() inside toggleFavorite;
-           removal is async (confirm) so we must not flip it here */
-        return;
-      }
-      if (role === "drag"){
-        e.stopPropagation();
+        star.classList.toggle("is-fav");
+        star.textContent = star.classList.contains("is-fav") ? "★" : "☆";
         return;
       }
       if (role === "rename"){
@@ -2213,50 +1722,12 @@
       playStation(station);
     });
 
-    /* keyboard activation for the role=button card (Enter / Space) */
-    card.addEventListener("keydown", function(e){
-      if (e.target !== card) return;
-      if (e.key === "Enter" || e.code === "Space" || e.key === " "){ e.preventDefault(); playStation(station); }
-    });
-
-    /* drag-and-drop reordering — only in the Favorites tab with Custom sort */
-    if (state.view === "favorites" && state.favSort === "custom" && isFavorite(station.stationuuid)){
-      card.classList.add("card--draggable");
-      card.draggable = true;
-      var handle = document.createElement("button");
-      handle.type = "button";
-      handle.className = "card__drag";
-      handle.textContent = "⠿";
-      handle.setAttribute("data-role", "drag");
-      handle.setAttribute("aria-label", "Drag to reorder");
-      handle.setAttribute("tabindex", "-1");
-      card.insertBefore(handle, card.firstChild);
-      card.addEventListener("dragstart", function(e){
-        state.dragSrcIndex = Array.prototype.indexOf.call(el.grid.children, card);
-        try { e.dataTransfer.effectAllowed = "move"; e.dataTransfer.setData("text/plain", String(state.dragSrcIndex)); } catch(_){}
-        card.classList.add("card--dragging");
-      });
-      card.addEventListener("dragend", function(){ card.classList.remove("card--dragging"); });
-      card.addEventListener("dragover", function(e){ e.preventDefault(); try { e.dataTransfer.dropEffect = "move"; } catch(_){} });
-      card.addEventListener("drop", function(e){
-        e.preventDefault();
-        var src = state.dragSrcIndex;
-        var tgt = Array.prototype.indexOf.call(el.grid.children, card);
-        if (src == null || src === tgt) return;
-        var moved = state.favorites.splice(src, 1)[0];
-        state.favorites.splice(tgt, 0, moved);
-        saveFavorites();
-        renderFavoritesWithSort();
-      });
-    }
-
     return card;
   }
 
   function resetGrid(){
     el.grid.innerHTML = "";
     state.renderedUUIDs = new Set();
-    state.currentList = [];
   }
 
   function updateCountText(){
@@ -2269,7 +1740,6 @@
     (list || []).forEach(function(s){
       if (!s || !s.stationuuid || state.renderedUUIDs.has(s.stationuuid)) return;
       state.renderedUUIDs.add(s.stationuuid);
-      state.currentList.push(s);
       el.grid.appendChild(makeCard(s));
       added++;
     });
@@ -2297,11 +1767,6 @@
     appendCards(stations);
     toggleLoadMore(false);
     maybeShowEmpty();
-  }
-  /* re-render the current view's cached list after a sort change */
-  function rerenderSortedView(){
-    if (state.view === "favorites"){ renderFavoritesWithSort(); return; }
-    rerenderSorted();
   }
 
   function renderFailure(){
@@ -2409,8 +1874,57 @@
     state.view = "favorites";
     state.viewParam = null;
     el.title.textContent = "Your favorites";
-    renderFavoritesWithSort();
-    setSortOptionsForView();
+    renderGrid(state.favorites);
+  }
+
+  /* Client-side filter over the saved favorites — no network call, so it
+     runs on every keystroke instead of the 350ms debounce used for the
+     global directory search. Matches name (including custom renames),
+     country, tags and language. */
+  function filterFavorites(query){
+    var q = (query || "").trim().toLowerCase();
+    if (!q){
+      el.title.textContent = "Your favorites";
+      renderGrid(state.favorites);
+      return;
+    }
+    var matches = state.favorites.filter(function(s){
+      var haystack = [getDisplayName(s), s.name, s.country, s.tags, s.language]
+        .filter(Boolean).join(" ").toLowerCase();
+      return haystack.indexOf(q) !== -1;
+    });
+    el.title.textContent = matches.length
+      ? "Favorites matching \u201c" + query.trim() + "\u201d"
+      : "No favorites match \u201c" + query.trim() + "\u201d";
+    renderGrid(matches);
+  }
+
+  function loadRecentlyPlayedTab(){
+    newRequest(); /* invalidate any in-flight request from the previous view */
+    hideFeatured();
+    state.view = "recentlyPlayed";
+    state.viewParam = null;
+    el.title.textContent = "Recently played";
+    renderGrid(state.recentlyPlayed);
+  }
+
+  /* Client-side filter over play history — same pattern as filterFavorites. */
+  function filterRecentlyPlayed(query){
+    var q = (query || "").trim().toLowerCase();
+    if (!q){
+      el.title.textContent = "Recently played";
+      renderGrid(state.recentlyPlayed);
+      return;
+    }
+    var matches = state.recentlyPlayed.filter(function(s){
+      var haystack = [getDisplayName(s), s.name, s.country, s.tags, s.language]
+        .filter(Boolean).join(" ").toLowerCase();
+      return haystack.indexOf(q) !== -1;
+    });
+    el.title.textContent = matches.length
+      ? "Recently played matching \u201c" + query.trim() + "\u201d"
+      : "Nothing played matches \u201c" + query.trim() + "\u201d";
+    renderGrid(matches);
   }
 
   function ensureCountries(){
@@ -2436,12 +1950,15 @@
       var matches = countries.filter(function(c){
         return names.indexOf(c.name) !== -1 && c.stationcount > 0;
       }).sort(function(a, b){ return b.stationcount - a.stationcount; }).slice(0, 30);
+      if (name === "Europe"){
+        matches = pinCountryByCode(matches, countries, "Netherlands", "NL", /netherlands/i);
+      }
       if (!matches.length){
         renderGrid([]);
         return;
       }
       renderCountryPills(matches, matches[0].name);
-      loadCountry(matches[0].name, true);
+      loadCountry(matches[0].name, true, matches[0].countrycode || null);
     }).catch(function(){
       if (myId !== state.reqId) return;
       renderFailure();
@@ -2452,9 +1969,10 @@
     }).catch(function(){ /* genre row just stays empty if this fails */ });
   }
 
-  function loadCountry(name, reset){
+  function loadCountry(name, reset, code){
     state.view = "country";
     state.viewParam = name;
+    if (code !== undefined) state.viewCode = code || null;
     el.title.textContent = name + (state.activeGenre ? " · " + capitalize(state.activeGenre) : "") + " stations";
     var myId;
     if (reset !== false){
@@ -2468,7 +1986,10 @@
       el.loadMoreBtn.textContent = "Loading…";
     }
     var tagParam = state.activeGenre ? "&tag=" + encodeURIComponent(state.activeGenre) + "&tagExact=true" : "";
-    apiGet("/json/stations/search?countryExact=true&country=" + encodeURIComponent(name) + tagParam + "&order=clickcount&reverse=true&limit=" + PAGE_SIZE + "&offset=" + state.offset + "&hidebroken=true")
+    var locationParam = state.viewCode
+      ? "countrycode=" + encodeURIComponent(state.viewCode) + "&countrycodeExact=true"
+      : "countryExact=true&country=" + encodeURIComponent(name);
+    apiGet("/json/stations/search?" + locationParam + tagParam + "&order=clickcount&reverse=true&limit=" + PAGE_SIZE + "&offset=" + state.offset + "&hidebroken=true")
       .then(function(list){
         if (myId !== state.reqId) return;
         if (reset !== false) el.grid.innerHTML = "";
@@ -2585,7 +2106,6 @@
     state.activeGenre = null;
     Array.prototype.forEach.call(el.dialTrack.children, function(b){ b.classList.remove("is-active"); });
     runCountryFilter(name, false);
-    setSortOptionsForView();
   }
 
   function enterSearchMode(query){
@@ -2595,15 +2115,16 @@
     state.activeGenre = null;
     Array.prototype.forEach.call(el.dialTrack.children, function(b){ b.classList.remove("is-active"); });
     runSearch(query, false);
-    setSortOptionsForView();
   }
 
   /* ---------------- tab selection ---------------- */
   function selectTab(tab){
     state.activeTab = tab;
     state.lastNonSearchTab = tab;
-    persistActiveTab(tab);
     el.search.value = "";
+    el.search.placeholder = tab === "Favorites" ? "Filter your favorites"
+      : tab === "Recently Played" ? "Filter recently played"
+      : "Search a station, city, or genre";
     Array.prototype.forEach.call(el.dialTrack.children, function(b){
       b.classList.toggle("is-active", b.getAttribute("data-tab") === tab);
     });
@@ -2618,10 +2139,14 @@
       el.genreRow.innerHTML = "";
       state.activeGenre = null;
       loadFavoritesTab();
+    } else if (tab === "Recently Played"){
+      el.countryRow.innerHTML = "";
+      el.genreRow.innerHTML = "";
+      state.activeGenre = null;
+      loadRecentlyPlayedTab();
     } else {
       loadContinent(tab);
     }
-    setSortOptionsForView();
   }
 
   /* ---------------- playback ---------------- */
@@ -2640,21 +2165,23 @@
 
   function setNowPlayingUI(station, statusText){
     el.nowName.textContent = getDisplayName(station);
-    var countryBit = station.country ? (station.countrycode ? countryFlag(station.countrycode) + " " + station.country : station.country) : "";
-    el.nowMeta.textContent = statusText || [countryBit, station.bitrate ? station.bitrate + " kbps" : ""].filter(Boolean).join(" · ");
+    el.nowMeta.textContent = statusText || [station.country, station.bitrate ? station.bitrate + " kbps" : ""].filter(Boolean).join(" · ");
     setPlayerArt(station);
   }
+
   function setPlayerArt(station){
     var img = el.playerArtImg;
     if (station && station.favicon){
-      if (img.src !== station.favicon) img.src = station.favicon;
-      img.style.display = "";
-      img.onerror = function(){ img.style.display = "none"; el.playerArt.classList.remove("has-art"); };
-      el.playerArt.classList.add("has-art");
+      if (img.getAttribute("data-src") !== station.favicon){
+        img.setAttribute("data-src", station.favicon);
+        img.onerror = function(){ img.style.display = "none"; img.removeAttribute("data-src"); };
+        img.onload = function(){ img.style.display = ""; };
+        img.src = station.favicon;
+      }
     } else {
+      img.removeAttribute("data-src");
       img.removeAttribute("src");
       img.style.display = "none";
-      el.playerArt.classList.remove("has-art");
     }
   }
 
@@ -2697,21 +2224,13 @@
     return el.audio.play();
   }
 
-  function hideRetry(){ el.retryBtn.classList.remove("is-visible"); }
-  function showRetry(){ el.retryBtn.classList.add("is-visible"); }
-
-  function playStation(station, isRetry){
-    /* a per-playback token so a late failure from a superseded station
-       can't trigger a retry or UI change for the new one */
-    var token = ++state.retryToken;
+  function playStation(station){
     state.current = station;
-    state.retryAttempt = isRetry ? state.retryAttempt : 0;
-    hideRetry();
     setNowPlayingUI(station, "Tuning in…");
     updateFavButton();
     el.player.classList.remove("is-live");
+    el.player.classList.add("is-buffering");
     refreshCardHighlight();
-    persistLastStation(station);
 
     apiGet("/json/url/" + encodeURIComponent(station.stationuuid))
       .then(function(res){
@@ -2719,54 +2238,29 @@
       })
       .catch(function(){ return station.url_resolved || station.url; })
       .then(function(streamUrl){
-        if (token !== state.retryToken) return; /* superseded */
         if (!streamUrl){ throw new Error("no stream url"); }
-        state.currentStreamUrl = streamUrl;
         return attachStream(streamUrl, station);
       })
       .then(function(){
-        if (token !== state.retryToken) return;
         state.isPlaying = true;
         el.playBtn.textContent = "❚❚";
+        el.player.classList.remove("is-buffering");
         el.player.classList.add("is-live");
         setNowPlayingUI(station);
-        announce("Playing " + getDisplayName(station) + ".");
-        pushRecentlyPlayed(station);
-        persistLastStation(station);
-        updateMediaSessionMetadata(station);
+        recordRecentlyPlayed(station);
       })
       .catch(function(){
-        if (token !== state.retryToken) return;
         state.isPlaying = false;
         el.playBtn.textContent = "▶";
-        /* auto-retry once: re-resolve the URL in case the mirror gave a stale link */
-        if (state.retryAttempt < 1){
-          state.retryAttempt += 1;
-          setNowPlayingUI(station, "Reconnecting…");
-          announce("Signal dropped. Reconnecting.");
-          setTimeout(function(){ if (token === state.retryToken) playStation(station, true); }, 1500);
-          return;
-        }
-        showRetry();
+        el.player.classList.remove("is-buffering");
         showToast("This signal dropped. Try another frequency.");
-        announce(getDisplayName(station) + " is unavailable right now.");
         setNowPlayingUI(station, "Unavailable right now");
       });
   }
 
-  function retryCurrent(){
-    if (state.current) playStation(state.current, true);
-  }
-
   function refreshCardHighlight(){
-    var currentUuid = state.current && state.current.stationuuid;
-    Array.prototype.forEach.call(el.grid.children, function(card){
-      card.classList.toggle("is-playing", currentUuid && card.getAttribute("data-uuid") === currentUuid);
-    });
-    Array.prototype.forEach.call(el.featuredWrap.children, function(card){
-      card.classList.toggle("is-playing", currentUuid && card.getAttribute && card.getAttribute("data-uuid") === currentUuid);
-    });
-    renderRecently();
+    Array.prototype.forEach.call(el.grid.children, function(card){ card.classList.remove("is-playing"); });
+    Array.prototype.forEach.call(el.featuredWrap.children, function(card){ card.classList.remove("is-playing"); });
   }
 
   function togglePlayback(){
@@ -2776,18 +2270,12 @@
       state.isPlaying = false;
       el.playBtn.textContent = "▶";
       el.player.classList.remove("is-live");
-      announce("Paused.");
-      setMediaPlaybackState();
     } else if (el.audio.src){
       el.audio.play().then(function(){
         state.isPlaying = true;
         el.playBtn.textContent = "❚❚";
         el.player.classList.add("is-live");
-        hideRetry();
-        announce("Playing.");
-        setMediaPlaybackState();
       }).catch(function(){
-        showRetry();
         showToast("This signal dropped. Try another frequency.");
       });
     } else {
@@ -2808,25 +2296,12 @@
   /* ---------------- events ---------------- */
   el.playBtn.addEventListener("click", togglePlayback);
   el.scanBtn.addEventListener("click", scanRandom);
-  el.retryBtn.addEventListener("click", function(e){ e.stopPropagation(); retryCurrent(); });
-  el.onboardingClose.addEventListener("click", function(e){ e.stopPropagation(); dismissOnboarding(); });
-  el.renameClose.addEventListener("click", closeRenameModal);
-  el.renameCancelBtn.addEventListener("click", closeRenameModal);
-  el.renameSubmitBtn.addEventListener("click", function(e){ e.preventDefault(); submitRename(); });
-  el.renameInput.addEventListener("keydown", function(e){
-    if (e.key === "Enter"){ e.preventDefault(); submitRename(); }
-    else if (e.key === "Escape"){ e.preventDefault(); closeRenameModal(); }
-  });
-  el.renameOverlay.addEventListener("click", function(e){ if (e.target === el.renameOverlay) closeRenameModal(); });
-  el.confirmClose.addEventListener("click", closeConfirm);
-  el.confirmCancelBtn.addEventListener("click", closeConfirm);
-  el.confirmOkBtn.addEventListener("click", function(e){ e.preventDefault(); runConfirm(); });
-  el.confirmOverlay.addEventListener("click", function(e){ if (e.target === el.confirmOverlay) closeConfirm(); });
   el.favBtn.addEventListener("click", function(){
     if (state.current) toggleFavorite(state.current);
   });
   el.volume.addEventListener("input", function(){ setVolume(el.volume.value); });
   el.settingsVolume.addEventListener("input", function(){ setVolume(el.settingsVolume.value); });
+  el.muteBtn.addEventListener("click", toggleMute);
   el.settingsBtn.addEventListener("click", function(e){
     e.stopPropagation();
     if (el.settingsPanel.classList.contains("is-open")) closeSettings();
@@ -2903,52 +2378,8 @@
     if (el.adminPanel.contains(e.target) || el.adminBtn.contains(e.target)) return;
     closeAdminPanel();
   });
-  function isTyping(target){
-    if (!target) return false;
-    var tag = target.tagName;
-    return tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT" || target.isContentEditable;
-  }
-  /* overlay-aware Escape: close the topmost modal first */
   document.addEventListener("keydown", function(e){
-    if (e.key !== "Escape") return;
-    if (el.renameOverlay.classList.contains("is-open")){ e.preventDefault(); closeRenameModal(); return; }
-    if (el.confirmOverlay.classList.contains("is-open")){ e.preventDefault(); closeConfirm(); return; }
-    if (el.adminOverlay.classList.contains("is-open")){ closeAdminOverlay(); return; }
-    if (el.accountOverlay.classList.contains("is-open")){ closeAccountOverlay(); return; }
-    if (el.adminPanel.classList.contains("is-open")){ closeAdminPanel(); return; }
-    if (el.settingsPanel.classList.contains("is-open")){ closeSettings(); return; }
-  });
-  /* global shortcuts: / focus search, Space play/pause, arrows volume.
-     Skipped while typing or when focus is on an interactive control so we
-     don't hijack Space (clicks) or arrows (range/select). */
-  document.addEventListener("keydown", function(e){
-    if (e.metaKey || e.ctrlKey || e.altKey) return;
-    var target = e.target;
-    if (isTyping(target)) return;
-    var tag = target && target.tagName;
-    var onControl = tag === "BUTTON" || tag === "A" || tag === "SELECT" || (target && target.getAttribute && target.getAttribute("role") === "button");
-    if (e.key === "/"){
-      e.preventDefault();
-      el.search.focus();
-      return;
-    }
-    if (e.code === "Space" || e.key === " "){
-      if (onControl) return; /* let the focused button handle its own Space/click */
-      e.preventDefault();
-      togglePlayback();
-      return;
-    }
-    if (e.key === "m" || e.key === "M"){ e.preventDefault(); toggleMute(); return; }
-    if (e.key >= "1" && e.key <= "9"){ var idx = Number(e.key) - 1; if (TABS[idx]){ e.preventDefault(); selectTab(TABS[idx]); return; } }
-    if (e.key === "ArrowUp"){
-      e.preventDefault();
-      setVolume(Math.min(100, (Number(el.volume.value) || 0) + 5));
-    } else if (e.key === "ArrowDown"){
-      e.preventDefault();
-      setVolume(Math.max(0, (Number(el.volume.value) || 0) - 5));
-    } else if (e.key === "ArrowRight" && onControl && tag === "BUTTON"){
-      /* allow normal focus traversal */
-    }
+    if (e.key === "Escape"){ closeAdminOverlay(); closeAdminPanel(); closeAccountOverlay(); }
   });
   el.themeDarkBtn.addEventListener("click", function(){ applyTheme("dark"); });
   el.themeLightBtn.addEventListener("click", function(){ applyTheme("light"); });
@@ -2962,22 +2393,14 @@
     else showToast("Sleep timer turned off.");
   });
   el.sleepChip.addEventListener("click", cancelSleepTimer);
-  el.muteBtn.addEventListener("click", function(e){ e.stopPropagation(); toggleMute(); });
-  el.copyBtn.addEventListener("click", function(e){ e.stopPropagation(); copyStationLink(); });
-  el.sortSelect.addEventListener("change", function(){
-    if (state.view === "favorites"){ state.favSort = el.sortSelect.value; persistFavSort(); renderFavoritesWithSort(); }
-    else { state.stationSort = el.sortSelect.value; persistStationSort(); rerenderSorted(); }
-  });
-  el.audio.addEventListener("waiting", setBufferingUI);
-  el.audio.addEventListener("stalled", setBufferingUI);
-  el.audio.addEventListener("playing", clearBufferingUI);
-  el.audio.addEventListener("canplay", clearBufferingUI);
   document.addEventListener("click", function(e){
     if (!el.settingsPanel.classList.contains("is-open")) return;
     if (el.settingsPanel.contains(e.target) || el.settingsBtn.contains(e.target)) return;
     closeSettings();
   });
-  /* Escape handling consolidated above. */
+  document.addEventListener("keydown", function(e){
+    if (e.key === "Escape") closeSettings();
+  });
   el.loadMoreBtn.addEventListener("click", function(){
     if (state.view === "popular") loadPopular(false);
     else if (state.view === "country") loadCountry(state.viewParam, false);
@@ -2985,19 +2408,30 @@
     else if (state.view === "search") runSearch(state.viewParam, true);
   });
   setVolume(el.volume.value);
+  updateMuteUI();
   el.audio.addEventListener("error", function(){
-    if (state.current && state.isPlaying){
+    if (state.current){
       showToast("This signal dropped. Try another frequency.");
       state.isPlaying = false;
       el.playBtn.textContent = "▶";
       el.player.classList.remove("is-live");
-      showRetry();
+      el.player.classList.remove("is-buffering");
     }
   });
 
   var searchTimer = null;
   el.search.addEventListener("input", function(){
     var q = el.search.value.trim();
+    if (state.activeTab === "Favorites"){
+      if (searchTimer){ clearTimeout(searchTimer); searchTimer = null; }
+      filterFavorites(q);
+      return;
+    }
+    if (state.activeTab === "Recently Played"){
+      if (searchTimer){ clearTimeout(searchTimer); searchTimer = null; }
+      filterRecentlyPlayed(q);
+      return;
+    }
     if (searchTimer) clearTimeout(searchTimer);
     searchTimer = setTimeout(function(){
       if (q.length >= 2){
@@ -3021,39 +2455,18 @@
   loadVolumeState();
   loadSleepState();
   loadAccountState();
-  loadRecentlyPlayed();
   refreshAccountUI();
   refreshAdminUI();
   loadTheme();
   populateClockOffsets();
   tickClock();
   setInterval(tickClock, 1000);
-  state.activeTab = loadActiveTab();
-  loadStationSort();
-  loadFavSort();
   renderTabs();
-  showOnboardingIfNeeded();
-  setupMediaSession();
-  loadMuteState();
-  /* Restore the last-played station's metadata in the player bar (no
-     autoplay — browsers block audio that wasn't triggered by a user
-     gesture). The user can press play to resume. */
+  loadRecentlyPlayed();
   loadFavorites().then(function(){
-    selectTab(state.activeTab);
-    var snap = loadLastStationSnapshot();
-    if (snap){
-      state.current = snap;
-      setNowPlayingUI(snap, "Paused — press play to resume");
-      updateFavButton();
-      el.playBtn.setAttribute("aria-label", "Play");
-      announce(getDisplayName(snap) + " ready. Press play to resume.");
-    }
+    loadPopular();
   });
 })();
 </script>
 </body>
 </html>
-
-
-
-
