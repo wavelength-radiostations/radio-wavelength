@@ -379,6 +379,8 @@
   .update-btn__icon{font-size:14px;}
   #autoUpdateBtn.is-on{color:var(--ink);background:var(--green);border-color:var(--green);}
   #autoUpdateBtn.is-on:hover{color:var(--ink);}
+  #npToastOnBtn.is-on,#npToastOffBtn.is-on{color:var(--ink);background:var(--green);border-color:var(--green);}
+  #npToastOnBtn.is-on:hover,#npToastOffBtn.is-on:hover{color:var(--ink);}
   .update-hint{
     font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--muted);
     line-height:1.5;margin:8px 0 0;
@@ -455,6 +457,39 @@
     max-width:80vw;text-align:center;
   }
   .toast.is-visible{opacity:1;transform:translate(-50%,0);}
+
+  /* ---------- now-playing popup ---------- */
+  .np-toast{
+    position:fixed;top:18px;left:50%;transform:translate(-50%,-14px);
+    display:flex;align-items:center;gap:12px;
+    background:var(--panel);border:1px solid var(--line);color:var(--paper);
+    padding:10px 16px 10px 10px;border-radius:14px;
+    box-shadow:0 10px 30px rgba(0,0,0,0.28);
+    opacity:0;pointer-events:none;transition:opacity .25s ease,transform .25s ease;
+    z-index:30;max-width:min(360px,86vw);
+  }
+  .np-toast.is-visible{opacity:1;transform:translate(-50%,0);}
+  .np-toast__art{
+    position:relative;width:38px;height:38px;border-radius:9px;background:var(--ink);flex:none;
+    overflow:hidden;display:flex;align-items:center;justify-content:center;
+    border:1px solid var(--line);
+  }
+  .np-toast__art-fallback{color:var(--muted);display:flex;align-items:center;justify-content:center;}
+  .np-toast__art img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;}
+  .np-toast__body{min-width:0;}
+  .np-toast__eyebrow{
+    font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--amber);
+    text-transform:uppercase;letter-spacing:.06em;margin-bottom:2px;
+  }
+  .np-toast__name{font-size:13.5px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  .np-toast__meta{
+    font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--muted);
+    overflow:hidden;text-overflow:ellipsis;white-space:nowrap;margin-top:1px;
+  }
+  @media (max-width:520px){
+    .np-toast{left:12px;right:12px;top:12px;transform:translateY(-14px);max-width:none;}
+    .np-toast.is-visible{transform:translateY(0);}
+  }
 </style>
 </head>
 <body>
@@ -587,6 +622,18 @@
     <p class="update-hint" id="sleepHint">Pauses whatever is playing after the chosen time. Tap the chip in the player to cancel early.</p>
   </div>
   <div class="settings-section">
+    <span class="settings-section__label">Now-playing popup</span>
+    <div class="update-toggle">
+      <button type="button" id="npToastOnBtn" class="update-btn">
+        <span class="update-btn__icon">●</span>On
+      </button>
+      <button type="button" id="npToastOffBtn" class="update-btn">
+        <span class="update-btn__icon">○</span>Off
+      </button>
+    </div>
+    <p class="update-hint" id="npToastHint">Shows a quick popup with the station name whenever you tune in.</p>
+  </div>
+  <div class="settings-section">
     <span class="settings-section__label">My account</span>
     <div class="account-box" id="accountBox" style="display:none;">
       <div class="admin-panel__email" id="accountEmail"></div>
@@ -693,6 +740,14 @@
 </div>
 
 <div class="toast" id="toast"></div>
+<div class="np-toast" id="npToast" role="status" aria-live="polite">
+  <div class="np-toast__art" id="npToastArt"></div>
+  <div class="np-toast__body">
+    <div class="np-toast__eyebrow">Now tuned in</div>
+    <div class="np-toast__name" id="npToastName"></div>
+    <div class="np-toast__meta" id="npToastMeta"></div>
+  </div>
+</div>
 <audio id="audio" preload="none"></audio>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/hls.js/1.5.17/hls.min.js"></script>
@@ -779,6 +834,13 @@
     updateBtn: document.getElementById("updateBtn"),
     autoUpdateBtn: document.getElementById("autoUpdateBtn"),
     manualUpdateBtn: document.getElementById("manualUpdateBtn"),
+    npToast: document.getElementById("npToast"),
+    npToastArt: document.getElementById("npToastArt"),
+    npToastName: document.getElementById("npToastName"),
+    npToastMeta: document.getElementById("npToastMeta"),
+    npToastOnBtn: document.getElementById("npToastOnBtn"),
+    npToastOffBtn: document.getElementById("npToastOffBtn"),
+    npToastHint: document.getElementById("npToastHint"),
     autoUpdateIcon: document.getElementById("autoUpdateIcon"),
     updateHint: document.getElementById("updateHint"),
     saveToFileBtn: document.getElementById("saveToFileBtn"),
@@ -1130,6 +1192,56 @@
     el.toast.classList.add("is-visible");
     if (state.toastTimer) clearTimeout(state.toastTimer);
     state.toastTimer = setTimeout(function(){ el.toast.classList.remove("is-visible"); }, 3500);
+  }
+
+  /* ---------------- now-playing popup ----------------
+     A small popup with the station's icon, name and meta that appears
+     whenever a new station starts playing. Whether it appears at all is
+     a user preference (Settings > Now-playing popup), persisted to
+     localStorage, independent of the regular error/status toast above. */
+  var NP_TOAST_KEY = "wavelength.nowPlayingToast";
+
+  function showNowPlayingToast(station){
+    if (!state.nowPlayingToast || !el.npToast) return;
+    el.npToastArt.innerHTML = "<div class='np-toast__art-fallback'><svg width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='1.6'><circle cx='12' cy='16' r='1.6' fill='currentColor' stroke='none'/><path d='M6 16a6 6 0 0 1 12 0M3 16a9 9 0 0 1 18 0' stroke-linecap='round'/></svg></div>";
+    if (station.favicon){
+      var img = document.createElement("img");
+      img.src = station.favicon;
+      img.alt = "";
+      img.onerror = function(){ img.style.display = "none"; };
+      el.npToastArt.appendChild(img);
+    }
+    el.npToastName.textContent = getDisplayName(station);
+    var metaBits = [station.country, station.bitrate ? station.bitrate + " kbps" : ""].filter(Boolean);
+    el.npToastMeta.textContent = metaBits.join(" · ");
+    el.npToast.classList.add("is-visible");
+    if (state.npToastTimer) clearTimeout(state.npToastTimer);
+    state.npToastTimer = setTimeout(function(){
+      el.npToast.classList.remove("is-visible");
+    }, 4000);
+  }
+
+  function applyNowPlayingToast(on){
+    state.nowPlayingToast = !!on;
+    el.npToastOnBtn.classList.toggle("is-on", state.nowPlayingToast);
+    el.npToastOffBtn.classList.toggle("is-on", !state.nowPlayingToast);
+    el.npToastHint.textContent = state.nowPlayingToast
+      ? "Shows a quick popup with the station name whenever you tune in."
+      : "Popup turned off — the player bar still updates as normal.";
+    if (!state.nowPlayingToast && el.npToast){
+      el.npToast.classList.remove("is-visible");
+      if (state.npToastTimer) clearTimeout(state.npToastTimer);
+    }
+    try { window.localStorage.setItem(NP_TOAST_KEY, state.nowPlayingToast ? "1" : "0"); } catch(e){}
+  }
+
+  function loadNowPlayingToastState(){
+    var saved = true;
+    try {
+      var raw = window.localStorage.getItem(NP_TOAST_KEY);
+      if (raw !== null) saved = raw === "1";
+    } catch(e){}
+    applyNowPlayingToast(saved);
   }
 
   /* ---------------- clock ---------------- */
@@ -2414,6 +2526,7 @@
         el.player.classList.add("is-live");
         setNowPlayingUI(station);
         recordRecentlyPlayed(station);
+        showNowPlayingToast(station);
       })
       .catch(function(){
         state.isPlaying = false;
@@ -2484,6 +2597,14 @@
   el.autoUpdateBtn.addEventListener("click", function(){
     applyAutoUpdate(!state.autoUpdate);
     showToast(state.autoUpdate ? "Automatic updates turned on." : "Automatic updates turned off.");
+  });
+  el.npToastOnBtn.addEventListener("click", function(){
+    applyNowPlayingToast(true);
+    showToast("Now-playing popup turned on.");
+  });
+  el.npToastOffBtn.addEventListener("click", function(){
+    applyNowPlayingToast(false);
+    showToast("Now-playing popup turned off.");
   });
   el.saveToFileBtn.addEventListener("click", function(e){
     e.stopPropagation();
@@ -2627,6 +2748,7 @@
   loadAdminState();
   loadNameOverrides();
   loadAutoUpdateState();
+  loadNowPlayingToastState();
   loadVolumeState();
   loadSleepState();
   loadAccountState();
